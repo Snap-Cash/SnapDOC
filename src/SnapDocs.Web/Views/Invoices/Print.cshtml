@@ -1,0 +1,83 @@
+@model SnapDocs.Domain.Entities.Document
+@{
+    Layout = null;
+    var remaining = Model.Total - Model.PaidAmount;
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <title>طباعة فاتورة @Model.Number</title>
+    <link rel="stylesheet" href="~/css/snapui.css" />
+</head>
+<body class="print-body" onload="setTimeout(() => window.print(), 350)">
+    <section class="pro-print-page">
+        <div class="print-watermark-status">@Model.Status</div>
+        <header class="pro-print-header">
+            <div class="pro-logo">SD</div>
+            <div>
+                <h1>SnapDocs Demo Company</h1>
+                <p>Cairo, Egypt · info@snapdocs.local · 01000000000</p>
+            </div>
+            <div class="pro-doc-title">
+                <strong>فاتورة بيع</strong>
+                <span>@Model.Number</span>
+            </div>
+        </header>
+
+        <section class="pro-print-grid">
+            <div>
+                <span>العميل</span>
+                <strong>@(Model.Customer?.Name ?? "بدون عميل")</strong>
+                <p>@(Model.Customer?.Phone ?? "-")</p>
+            </div>
+            <div>
+                <span>بيانات الفاتورة</span>
+                <p>التاريخ: @Model.DocumentDate.ToString("yyyy/MM/dd")</p>
+                <p>الاستحقاق: @(Model.DueDate?.ToString("yyyy/MM/dd") ?? "-")</p>
+                <p>كود التحقق: @Model.VerifyCode</p>
+            </div>
+            <div>
+                <span>الحالة</span>
+                <strong>@Model.Status</strong>
+                <p>المتبقي: @remaining.ToString("N2")</p>
+            </div>
+        </section>
+
+        <table class="pro-print-table">
+            <thead><tr><th>#</th><th>البيان</th><th>الكمية</th><th>السعر</th><th>خصم</th><th>الإجمالي</th></tr></thead>
+            <tbody>
+            @{ var i = 1; }
+            @foreach (var item in Model.Items)
+            {
+                <tr><td>@i</td><td>@item.Description</td><td>@item.Quantity.ToString("N3")</td><td>@item.UnitPrice.ToString("N2")</td><td>@item.Discount.ToString("N2")</td><td>@item.LineTotal.ToString("N2")</td></tr>
+                i++;
+            }
+            </tbody>
+        </table>
+
+        <section class="pro-print-bottom">
+            <div class="pro-qr">
+                <div>@Model.VerifyCode</div>
+                <small>QR / Verify Code</small>
+            </div>
+            <div class="pro-totals">
+                <p><span>الإجمالي</span><strong>@Model.SubTotal.ToString("N2")</strong></p>
+                <p><span>الخصم</span><strong>@Model.Discount.ToString("N2")</strong></p>
+                <p><span>الضريبة</span><strong>@Model.Tax.ToString("N2")</strong></p>
+                <p class="grand"><span>صافي الفاتورة</span><strong>@Model.Total.ToString("N2")</strong></p>
+            </div>
+        </section>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Notes))
+        {
+            <section class="pro-notes"><strong>ملاحظات:</strong> @Model.Notes</section>
+        }
+
+        <footer class="pro-signatures">
+            <div>توقيع المحاسب</div>
+            <div>توقيع العميل</div>
+        </footer>
+    </section>
+</body>
+</html>

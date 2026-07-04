@@ -1,0 +1,6 @@
+@model IEnumerable<SnapDocs.Domain.Entities.CompanyUser>
+@{ ViewData["Title"] = "المستخدمون"; }
+<div class="page-head"><div><h1>المستخدمون والصلاحيات</h1><p>نواة Permission Matrix بشكل مبسط وقابل للتوسيع.</p></div><a class="btn primary" asp-action="Create">+ مستخدم جديد</a></div>
+<div class="table-card"><table class="data-table"><thead><tr><th>الاسم</th><th>البريد</th><th>الدور</th><th>إنشاء</th><th>اعتماد</th><th>إلغاء</th><th>عملاء</th><th>إعدادات</th><th>الحالة</th></tr></thead><tbody>
+@foreach(var u in Model){<tr><td><strong>@u.FullName</strong></td><td>@u.Email</td><td><span class="pill">@u.Role</span></td><td>@(u.CanCreateDocuments ? "✅" : "—")</td><td>@(u.CanApproveDocuments ? "✅" : "—")</td><td>@(u.CanCancelDocuments ? "✅" : "—")</td><td>@(u.CanManageCustomers ? "✅" : "—")</td><td>@(u.CanManageSettings ? "✅" : "—")</td><td><span class="badge @(u.IsActive ? "success" : "draft")">@(u.IsActive ? "نشط" : "موقوف")</span></td></tr>}
+</tbody></table></div>

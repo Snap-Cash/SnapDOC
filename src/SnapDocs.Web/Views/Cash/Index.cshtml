@@ -1,0 +1,72 @@
+@model SnapDocs.Web.Models.CashDashboardViewModel
+@using SnapDocs.Domain.Enums
+@{ ViewData["Title"] = "الخزنة والتحصيلات"; }
+
+<section class="cash-studio">
+    <div class="page-head cash-head">
+        <div>
+            <span class="snap-eyebrow">Receipt & Cash Studio</span>
+            <h1>الخزنة والتحصيلات</h1>
+            <p>متابعة سندات القبض والصرف وحركة النقدية لكل حساب.</p>
+        </div>
+        <div class="actions-row">
+            <a class="snap-btn" asp-action="CreateAccount">+ حساب خزنة</a>
+            <a class="snap-btn snap-btn-primary" asp-controller="ReceiptVouchers" asp-action="Create">+ سند قبض</a>
+            <a class="snap-btn" asp-controller="PaymentVouchers" asp-action="Create">+ سند صرف</a>
+        </div>
+    </div>
+
+    <div class="cash-kpis">
+        <article><span>إجمالي النقدية</span><strong>@Model.TotalCashBalance.ToString("N2")</strong><small>رصيد كل الحسابات</small></article>
+        <article><span>قبض اليوم</span><strong>@Model.TodayReceipts.ToString("N2")</strong><small>مقبوضات اليوم</small></article>
+        <article><span>صرف اليوم</span><strong>@Model.TodayPayments.ToString("N2")</strong><small>مصروفات اليوم</small></article>
+        <article><span>صافي اليوم</span><strong>@Model.NetToday.ToString("N2")</strong><small>قبض - صرف</small></article>
+    </div>
+
+    <form method="get" class="cash-filter no-print">
+        <label>من تاريخ<input type="date" name="from" value="@ViewBag.From" /></label>
+        <label>إلى تاريخ<input type="date" name="to" value="@ViewBag.To" /></label>
+        <label>الحساب<select name="accountId"><option value="">كل الحسابات</option>@foreach (var a in Model.Accounts) { <option value="@a.Account.Id" selected="@(ViewBag.AccountId == a.Account.Id)">@a.Account.Name</option> }</select></label>
+        <button class="snap-btn snap-btn-primary" type="submit">تطبيق</button>
+    </form>
+
+    <div class="cash-grid">
+        <section class="snap-card cash-accounts">
+            <div class="cash-section-title"><h2>الحسابات</h2><span>@Model.Accounts.Count حساب</span></div>
+            @if (!Model.Accounts.Any())
+            {
+                <div class="snap-empty"><strong>لا توجد خزائن بعد</strong><p>ابدأ بإضافة حساب خزنة أو بنك.</p></div>
+            }
+            else
+            {
+                foreach (var account in Model.Accounts)
+                {
+                    <article class="cash-account-card">
+                        <div><b>@account.Account.Name</b><small>@account.Account.Code · @account.Account.Type</small></div>
+                        <strong>@account.Balance.ToString("N2") @account.Account.CurrencyCode</strong>
+                        @if (account.Account.IsDefault) { <span class="cash-default">افتراضي</span> }
+                    </article>
+                }
+            }
+        </section>
+
+        <section class="snap-card cash-transactions">
+            <div class="cash-section-title"><h2>آخر الحركات</h2><span>@Model.RecentTransactions.Count حركة</span></div>
+            <div class="cash-mobile-list">
+                @foreach (var tx in Model.RecentTransactions)
+                {
+                    var amount = tx.Debit > 0 ? tx.Debit : tx.Credit;
+                    var direction = tx.Debit > 0 ? "in" : "out";
+                    <article class="cash-tx-card @direction">
+                        <div class="cash-tx-icon">@(tx.Debit > 0 ? "📥" : "📤")</div>
+                        <div class="cash-tx-main">
+                            <b>@tx.Description</b>
+                            <small>@tx.TransactionDate.ToString("yyyy/MM/dd") · @(tx.Customer?.Name ?? "بدون طرف") · @tx.CashAccount?.Name</small>
+                        </div>
+                        <strong>@amount.ToString("N2")</strong>
+                    </article>
+                }
+            </div>
+        </section>
+    </div>
+</section>

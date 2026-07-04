@@ -1,0 +1,109 @@
+@model SnapDocs.Web.Models.ProductsIndexViewModel
+@{
+    ViewData["Title"] = "المنتجات والخدمات";
+}
+
+<div class="page-head">
+    <div>
+        <h1>Product Studio</h1>
+        <p>إدارة المنتجات والخدمات والأسعار والضرائب والمخزون الافتتاحي بشكل مناسب للفواتير وعروض الأسعار.</p>
+    </div>
+    <a class="btn primary" asp-action="Create">+ منتج / خدمة جديدة</a>
+</div>
+
+@if (TempData["Success"] is not null)
+{
+    <div class="alert-success">@TempData["Success"]</div>
+}
+
+<div class="kpi-grid">
+    <div class="kpi-card"><span>إجمالي البنود</span><strong>@Model.TotalProducts</strong><small>منتجات وخدمات</small></div>
+    <div class="kpi-card"><span>بنود نشطة</span><strong>@Model.ActiveProducts</strong><small>متاحة للاستخدام</small></div>
+    <div class="kpi-card"><span>الخدمات</span><strong>@Model.ServicesCount</strong><small>بنود غير مخزنية</small></div>
+    <div class="kpi-card"><span>قيمة المخزون</span><strong>@Model.InventoryValue.ToString("N2")</strong><small>حسب التكلفة الافتتاحية</small></div>
+</div>
+
+<div class="table-card mt">
+    <form class="filter-bar" method="get">
+        <div class="searchbox wide">
+            <span>⌕</span>
+            <input name="search" value="@Model.Search" placeholder="ابحث بالكود، الاسم، التصنيف، أو الوصف" />
+        </div>
+        <select name="type" class="input-select">
+            <option value="all" selected="@(Model.Type == "all")">كل الأنواع</option>
+            <option value="product" selected="@(Model.Type == "product")">منتجات</option>
+            <option value="service" selected="@(Model.Type == "service")">خدمات</option>
+        </select>
+        <select name="status" class="input-select">
+            <option value="all" selected="@(Model.Status == "all")">كل الحالات</option>
+            <option value="active" selected="@(Model.Status == "active")">نشط</option>
+            <option value="inactive" selected="@(Model.Status == "inactive")">غير نشط</option>
+        </select>
+        <button class="btn secondary" type="submit">تصفية</button>
+    </form>
+</div>
+
+<div class="customer-grid mt">
+@foreach (var product in Model.Products)
+{
+    <div class="card customer-card pro-card">
+        <div class="customer-card-head">
+            <div>
+                <span class="badge @(product.IsService ? "primary" : "success")">@(product.IsService ? "خدمة" : "منتج")</span>
+                @if (product.NeedsReorder)
+                {
+                    <span class="badge danger">إعادة طلب</span>
+                }
+                <h3>@product.Name</h3>
+                <p>@product.Code · @product.Category</p>
+            </div>
+            <strong>@product.SalePrice.ToString("N2")</strong>
+        </div>
+        <div class="customer-card-stats">
+            <span>الوحدة <b>@product.UnitName</b></span>
+            <span>الضريبة <b>@product.TaxRate.ToString("N2")%</b></span>
+            <span>الكمية <b>@(product.IsService ? "-" : product.OpeningQuantity.ToString("N3"))</b></span>
+        </div>
+        <div class="mini-actions wrap">
+            <a class="btn small primary" asp-action="Details" asp-route-id="@product.Id">فتح Studio</a>
+            <a class="btn small secondary" asp-action="Edit" asp-route-id="@product.Id">تعديل</a>
+        </div>
+    </div>
+}
+</div>
+
+<div class="table-card mt">
+    <table class="data-table responsive-table">
+        <thead>
+            <tr>
+                <th>الكود</th>
+                <th>الاسم</th>
+                <th>النوع</th>
+                <th>التصنيف</th>
+                <th>سعر البيع</th>
+                <th>التكلفة</th>
+                <th>الضريبة</th>
+                <th>الكمية</th>
+                <th>الحالة</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var product in Model.Products)
+        {
+            <tr>
+                <td data-label="الكود">@product.Code</td>
+                <td data-label="الاسم"><strong>@product.Name</strong><br /><span>@product.UnitName</span></td>
+                <td data-label="النوع">@(product.IsService ? "خدمة" : "منتج")</td>
+                <td data-label="التصنيف">@product.Category</td>
+                <td data-label="سعر البيع"><strong>@product.SalePrice.ToString("N2")</strong></td>
+                <td data-label="التكلفة">@product.CostPrice.ToString("N2")</td>
+                <td data-label="الضريبة">@product.TaxRate.ToString("N2")%</td>
+                <td data-label="الكمية">@(product.IsService ? "-" : product.OpeningQuantity.ToString("N3"))</td>
+                <td data-label="الحالة"><span class="badge @(product.IsActive ? "success" : "danger")">@(product.IsActive ? "نشط" : "موقوف")</span></td>
+                <td><a class="btn small secondary" asp-action="Details" asp-route-id="@product.Id">عرض</a></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,220 @@
+@model SnapDocs.Web.Models.Reports.ReportsIndexViewModel
+@using SnapDocs.Domain.Enums
+@{
+    ViewData["Title"] = "Reports Pro";
+    var maxDaily = Model.DailyTrend.Any() ? Model.DailyTrend.Max(x => x.MaxValue) : 1;
+    var maxType = Model.DocumentTypeMetrics.Any() ? Model.DocumentTypeMetrics.Max(x => x.Total) : 1;
+    var maxAging = Model.Aging.Total <= 0 ? 1 : Model.Aging.Total;
+}
+
+<div class="reports-pro-page">
+    <div class="reports-hero">
+        <div>
+            <span class="snap-eyebrow">Sprint 20</span>
+            <h1>Reports Pro</h1>
+            <p>مركز تحليلات احترافي للمبيعات، التحصيلات، أعمار الديون، النقدية، أداء العملاء، وأنواع المستندات.</p>
+        </div>
+        <div class="mini-actions wrap">
+            <a class="btn secondary" asp-action="Print" asp-route-fromDate="@Model.FromDate.ToString("yyyy-MM-dd")" asp-route-toDate="@Model.ToDate.ToString("yyyy-MM-dd")" asp-route-customerId="@Model.CustomerId" target="_blank">🖨️ طباعة</a>
+            <a class="btn secondary" asp-action="ExportCsv" asp-route-fromDate="@Model.FromDate.ToString("yyyy-MM-dd")" asp-route-toDate="@Model.ToDate.ToString("yyyy-MM-dd")" asp-route-customerId="@Model.CustomerId">⬇️ CSV</a>
+            <a class="btn primary" asp-controller="Invoices" asp-action="Create">+ فاتورة</a>
+        </div>
+    </div>
+
+    <form method="get" class="card reports-filter-bar mt">
+        <div>
+            <label class="form-label">من تاريخ</label>
+            <input class="input-control" type="date" name="fromDate" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
+        </div>
+        <div>
+            <label class="form-label">إلى تاريخ</label>
+            <input class="input-control" type="date" name="toDate" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
+        </div>
+        <div>
+            <label class="form-label">العميل</label>
+            <select class="input-select" name="customerId" asp-items="ViewBag.Customers">
+                <option value="">كل العملاء</option>
+            </select>
+        </div>
+        <button class="btn secondary" type="submit">تطبيق التقرير</button>
+    </form>
+
+    <div class="reports-kpi-grid mt">
+        <div class="report-kpi primary"><span>المبيعات</span><strong>@Model.TotalSales.ToString("N2")</strong><small>@Model.InvoicesCount فاتورة · متوسط @Model.AverageInvoiceValue.ToString("N2")</small></div>
+        <div class="report-kpi success"><span>التحصيلات</span><strong>@Model.TotalCollections.ToString("N2")</strong><small>معدل التحصيل @Model.CollectionRate.ToString("N1")%</small></div>
+        <div class="report-kpi warning"><span>الرصيد المستحق</span><strong>@Model.OutstandingBalance.ToString("N2")</strong><small>@Model.OpenInvoicesCount فاتورة مفتوحة</small></div>
+        <div class="report-kpi danger"><span>المتأخر</span><strong>@Model.OverdueBalance.ToString("N2")</strong><small>نسبة التأخير @Model.OverdueRate.ToString("N1")%</small></div>
+        <div class="report-kpi"><span>النقد الداخل</span><strong>@Model.CashIn.ToString("N2")</strong><small>من الخزنة وسندات القبض</small></div>
+        <div class="report-kpi"><span>النقد الخارج</span><strong>@Model.CashOut.ToString("N2")</strong><small>سندات صرف ومصروفات</small></div>
+        <div class="report-kpi"><span>صافي النقدية</span><strong class="@(Model.CashNet >= 0 ? "success-text" : "danger-text")">@Model.CashNet.ToString("N2")</strong><small>داخل - خارج</small></div>
+        <div class="report-kpi"><span>أعلى فاتورة</span><strong>@Model.HighestInvoiceValue.ToString("N2")</strong><small>@Model.DocumentsCount مستند داخل الفترة</small></div>
+    </div>
+
+    <div class="reports-layout mt">
+        <section class="card reports-panel wide">
+            <div class="section-head">
+                <div><h3>اتجاه المبيعات والتحصيلات</h3><p>آخر 31 يومًا داخل نطاق التقرير.</p></div>
+            </div>
+            <div class="report-chart-bars">
+                @foreach (var day in Model.DailyTrend)
+                {
+                    var salesHeight = maxDaily <= 0 ? 0 : Math.Round((day.Sales / maxDaily) * 100, 0);
+                    var collectionHeight = maxDaily <= 0 ? 0 : Math.Round((day.Collections / maxDaily) * 100, 0);
+                    <div class="chart-day" title="@day.DayLabel - مبيعات @day.Sales.ToString("N2") / تحصيلات @day.Collections.ToString("N2")">
+                        <div class="bar-wrap">
+                            <span class="bar sales" style="height:@salesHeight%"></span>
+                            <span class="bar collections" style="height:@collectionHeight%"></span>
+                        </div>
+                        <small>@day.DayLabel</small>
+                    </div>
+                }
+                @if (!Model.DailyTrend.Any())
+                {
+                    <div class="empty-state">لا توجد بيانات كافية لرسم الاتجاه.</div>
+                }
+            </div>
+            <div class="chart-legend"><span><i class="sales-dot"></i> مبيعات</span><span><i class="collections-dot"></i> تحصيلات</span></div>
+        </section>
+
+        <section class="card reports-panel">
+            <div class="section-head"><div><h3>أعمار الديون</h3><p>تصنيف الفواتير المفتوحة حسب تاريخ الاستحقاق.</p></div></div>
+            <div class="aging-list">
+                @{ var agingRows = new[] {
+                    new { Label = "حالي", Value = Model.Aging.Current, Css = "ok" },
+                    new { Label = "1 - 30 يوم", Value = Model.Aging.Days1To30, Css = "mild" },
+                    new { Label = "31 - 60 يوم", Value = Model.Aging.Days31To60, Css = "warn" },
+                    new { Label = "61 - 90 يوم", Value = Model.Aging.Days61To90, Css = "hot" },
+                    new { Label = "+90 يوم", Value = Model.Aging.Over90, Css = "danger" }
+                }; }
+                @foreach (var item in agingRows)
+                {
+                    var width = maxAging <= 0 ? 0 : Math.Round((item.Value / maxAging) * 100, 0);
+                    <div class="aging-row @item.Css"><div><strong>@item.Label</strong><span>@item.Value.ToString("N2")</span></div><em style="width:@width%"></em></div>
+                }
+            </div>
+        </section>
+    </div>
+
+    <div class="reports-layout mt">
+        <section class="card reports-panel">
+            <div class="section-head"><div><h3>تحليل أنواع المستندات</h3><p>حجم وقيمة كل نوع مستند.</p></div></div>
+            <div class="document-mix-list">
+                @foreach (var item in Model.DocumentTypeMetrics)
+                {
+                    var width = maxType <= 0 ? 0 : Math.Round((item.Total / maxType) * 100, 0);
+                    <div class="mix-row">
+                        <div class="mix-head"><strong>@item.Icon @item.Label</strong><span>@item.Count مستند</span></div>
+                        <div class="mix-track"><em style="width:@width%"></em></div>
+                        <small>@item.Total.ToString("N2")</small>
+                    </div>
+                }
+                @if (!Model.DocumentTypeMetrics.Any())
+                {
+                    <div class="empty-state">لا توجد مستندات داخل النطاق.</div>
+                }
+            </div>
+        </section>
+
+        <section class="card reports-panel">
+            <div class="section-head"><div><h3>الخزنة وطرق الدفع</h3><p>تحليل النقدية حسب الحساب وطريقة الدفع.</p></div></div>
+            <div class="cash-report-grid">
+                <div>
+                    <h4>حسابات النقدية</h4>
+                    @foreach (var account in Model.CashAccounts)
+                    {
+                        <div class="cash-mini-row"><span>@account.AccountName <small>@account.AccountType</small></span><strong class="@(account.Net >= 0 ? "success-text" : "danger-text")">@account.Net.ToString("N2")</strong></div>
+                    }
+                    @if (!Model.CashAccounts.Any()) { <div class="empty-state small">لا توجد حركات نقدية.</div> }
+                </div>
+                <div>
+                    <h4>طرق الدفع</h4>
+                    @foreach (var method in Model.PaymentMethods)
+                    {
+                        <div class="cash-mini-row"><span>@method.Method <small>@method.Count حركة</small></span><strong>@method.Total.ToString("N2")</strong></div>
+                    }
+                    @if (!Model.PaymentMethods.Any()) { <div class="empty-state small">لا توجد طرق دفع مسجلة.</div> }
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="reports-layout mt">
+        <section class="table-card reports-table-card">
+            <div class="section-head"><h3>أفضل العملاء حسب المبيعات</h3></div>
+            <table class="data-table responsive-table">
+                <thead><tr><th>العميل</th><th>المبيعات</th><th>التحصيلات</th><th>الرصيد</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var row in Model.TopCustomersBySales)
+                {
+                    <tr>
+                        <td data-label="العميل"><strong>@row.CustomerName</strong><br /><span>@row.CustomerCode</span></td>
+                        <td data-label="المبيعات">@row.Sales.ToString("N2")</td>
+                        <td data-label="التحصيلات">@row.Collections.ToString("N2")</td>
+                        <td data-label="الرصيد"><strong class="@(row.Balance > 0 ? "danger-text" : "success-text")">@row.Balance.ToString("N2")</strong></td>
+                        <td><a class="btn small secondary" asp-controller="Customers" asp-action="Details" asp-route-id="@row.CustomerId">Studio</a></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </section>
+
+        <section class="table-card reports-table-card">
+            <div class="section-head"><h3>أعلى أرصدة مستحقة</h3></div>
+            <table class="data-table responsive-table">
+                <thead><tr><th>العميل</th><th>عدد المستندات</th><th>الرصيد</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var row in Model.TopCustomerBalances)
+                {
+                    <tr>
+                        <td data-label="العميل"><strong>@row.CustomerName</strong><br /><span>@row.CustomerCode</span></td>
+                        <td data-label="عدد المستندات">@row.DocumentsCount</td>
+                        <td data-label="الرصيد"><strong class="@(row.Balance > 0 ? "danger-text" : "success-text")">@row.Balance.ToString("N2")</strong></td>
+                        <td><a class="btn small secondary" asp-controller="CustomerStatements" asp-action="Create" asp-route-customerId="@row.CustomerId">كشف حساب</a></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <div class="table-card mt reports-table-card">
+        <div class="section-head"><h3>المبيعات والتحصيلات شهريًا</h3></div>
+        <table class="data-table responsive-table">
+            <thead><tr><th>الشهر</th><th>المبيعات</th><th>التحصيلات</th><th>عدد المستندات</th></tr></thead>
+            <tbody>
+            @foreach (var month in Model.MonthlySales)
+            {
+                <tr>
+                    <td data-label="الشهر"><strong>@month.MonthLabel</strong></td>
+                    <td data-label="المبيعات">@month.Sales.ToString("N2")</td>
+                    <td data-label="التحصيلات">@month.Collections.ToString("N2")</td>
+                    <td data-label="عدد المستندات">@month.DocumentsCount</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-card mt reports-table-card">
+        <div class="section-head"><h3>آخر المستندات داخل التقرير</h3></div>
+        <table class="data-table responsive-table">
+            <thead><tr><th>المستند</th><th>العميل</th><th>التاريخ</th><th>النوع</th><th>الحالة</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var doc in Model.RecentDocuments)
+            {
+                <tr>
+                    <td data-label="المستند"><strong>@doc.Number</strong></td>
+                    <td data-label="العميل">@doc.CustomerName</td>
+                    <td data-label="التاريخ">@doc.DocumentDate.ToString("yyyy/MM/dd")</td>
+                    <td data-label="النوع">@doc.Type</td>
+                    <td data-label="الحالة"><partial name="_DocumentStatusBadge" model="doc.Status" /></td>
+                    <td data-label="الإجمالي">@doc.Total.ToString("N2")</td>
+                    <td data-label="المدفوع">@doc.PaidAmount.ToString("N2")</td>
+                    <td data-label="المتبقي"><strong>@doc.Remaining.ToString("N2")</strong></td>
+                    <td><a class="btn small secondary" asp-controller="Print" asp-action="Document" asp-route-id="@doc.Id" target="_blank">طباعة</a></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

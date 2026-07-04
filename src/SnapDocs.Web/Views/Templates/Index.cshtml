@@ -1,0 +1,4 @@
+@model IEnumerable<SnapDocs.Domain.Entities.DocumentTemplateSetting>
+@{ ViewData["Title"] = "قوالب المستندات"; }
+<div class="page-head"><div><h1>قوالب المستندات</h1><p>نواة Document Designer قبل بناء محرر كامل للقوالب.</p></div></div>
+<div class="template-grid">@foreach(var t in Model){<div class="template-card"><div class="template-preview" style="--accent:@t.AccentColor"><div></div><span></span><strong></strong></div><h3>@t.DocumentType</h3><p>@t.TemplateName</p><div class="mini-actions"><span class="pill">QR: @(t.ShowQrCode ? "On" : "Off")</span><span class="pill">Watermark: @(t.ShowWatermark ? "On" : "Off")</span></div><small>@t.FooterText</small></div>}</div>

@@ -1,0 +1,19 @@
+@model SnapDocs.Web.Models.Print.PrintDocumentViewModel
+@{
+    ViewData["Title"] = "معاينة الطباعة";
+}
+<section class="page-head">
+    <div>
+        <span class="eyebrow">Print Engine</span>
+        <h1>معاينة @Model.DocumentTitleAr</h1>
+        <p>@Model.Document.Number · قالب @Model.Settings.TemplateName</p>
+    </div>
+    <div class="head-actions">
+        <a class="snap-btn ghost" asp-controller="Print" asp-action="Document" asp-route-id="@Model.Document.Id">فتح الطباعة</a>
+        <a class="snap-btn primary" asp-controller="Print" asp-action="Document" asp-route-id="@Model.Document.Id" asp-route-auto="true">طباعة مباشرة</a>
+    </div>
+</section>
+
+<div class="print-preview-shell">
+    <iframe src="@Url.Action("Document", "Print", new { id = Model.Document.Id })" title="Print Preview"></iframe>
+</div>

@@ -1,0 +1,11 @@
+C:\Users\ASUS\Downloads\SnapDocs_Sprint21_ThemeBrandingEngine\SnapDocs_Enterprise_SaaS_Current\src\SnapDocs.Domain\bin\Debug\net8.0\SnapDocs.Domain.deps.json
+C:\Users\ASUS\Downloads\SnapDocs_Sprint21_ThemeBrandingEngine\SnapDocs_Enterprise_SaaS_Current\src\SnapDocs.Domain\bin\Debug\net8.0\SnapDocs.Domain.dll
+C:\Users\ASUS\Downloads\SnapDocs_Sprint21_ThemeBrandingEngine\SnapDocs_Enterprise_SaaS_Current\src\SnapDocs.Domain\bin\Debug\net8.0\SnapDocs.Domain.pdb
+C:\Users\ASUS\Downloads\SnapDocs_Sprint21_ThemeBrandingEngine\SnapDocs_Enterprise_SaaS_Current\src\SnapDocs.Domain\obj\Debug\net8.0\SnapDocs.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\ASUS\Downloads\SnapDocs_Sprint21_ThemeBrandingEngine\SnapDocs_Enterprise_SaaS_Current\src\SnapDocs.Domain\obj\Debug\net8.0\SnapDocs.Domain.AssemblyInfoInputs.cache
+C:\Users\ASUS\Downloads\SnapDocs_Sprint21_ThemeBrandingEngine\SnapDocs_Enterprise_SaaS_Current\src\SnapDocs.Domain\obj\Debug\net8.0\SnapDocs.Domain.AssemblyInfo.cs
+C:\Users\ASUS\Downloads\SnapDocs_Sprint21_ThemeBrandingEngine\SnapDocs_Enterprise_SaaS_Current\src\SnapDocs.Domain\obj\Debug\net8.0\SnapDocs.Domain.csproj.CoreCompileInputs.cache
+C:\Users\ASUS\Downloads\SnapDocs_Sprint21_ThemeBrandingEngine\SnapDocs_Enterprise_SaaS_Current\src\SnapDocs.Domain\obj\Debug\net8.0\SnapDocs.Domain.dll
+C:\Users\ASUS\Downloads\SnapDocs_Sprint21_ThemeBrandingEngine\SnapDocs_Enterprise_SaaS_Current\src\SnapDocs.Domain\obj\Debug\net8.0\refint\SnapDocs.Domain.dll
+C:\Users\ASUS\Downloads\SnapDocs_Sprint21_ThemeBrandingEngine\SnapDocs_Enterprise_SaaS_Current\src\SnapDocs.Domain\obj\Debug\net8.0\SnapDocs.Domain.pdb
+C:\Users\ASUS\Downloads\SnapDocs_Sprint21_ThemeBrandingEngine\SnapDocs_Enterprise_SaaS_Current\src\SnapDocs.Domain\obj\Debug\net8.0\ref\SnapDocs.Domain.dll

@@ -1,0 +1,27 @@
+@model SnapDocs.Domain.Entities.Document
+@{ ViewData["Title"] = "سند القبض " + Model.Number; }
+
+<div class="page-head no-print">
+    <div><h1>سند القبض @Model.Number</h1><p><partial name="_DocumentStatusBadge" model="Model.Status" /></p></div>
+    <div class="actions-row"><partial name="_DocumentWorkflowActions" model="Model" /><button class="btn primary" onclick="window.print()">طباعة</button><a class="btn" asp-action="Index">رجوع</a></div>
+</div>
+<section class="document-print receipt-print">
+    <div class="print-watermark-status">@Model.Status</div>
+    <header class="print-title">
+        <div><h2>SnapDocs Demo Company</h2><p>Cairo, Egypt · info@snapdocs.local</p></div>
+        <div class="doc-meta"><strong>سند القبض</strong><span>@Model.Number</span><span>@Model.DocumentDate.ToString("yyyy/MM/dd")</span><span>Verify: @Model.VerifyCode</span></div>
+    </header>
+    <div class="party-box"><span>استلمنا من</span><strong>@(Model.Customer?.Name ?? "بدون عميل")</strong><p>@Model.Customer?.Phone</p></div>
+    <table class="print-table">
+        <thead><tr><th>البيان</th><th>-</th><th>المبلغ</th><th>خصم</th><th>الإجمالي</th></tr></thead>
+        <tbody>@foreach (var item in Model.Items) {<tr><td>@item.Description</td><td>@item.Quantity.ToString("N2")</td><td>@item.UnitPrice.ToString("N2")</td><td>@item.Discount.ToString("N2")</td><td>@item.LineTotal.ToString("N2")</td></tr>}</tbody>
+    </table>
+    <div class="totals-box">
+        <div><span>الإجمالي</span><strong>@Model.SubTotal.ToString("N2")</strong></div>
+        <div><span>الخصم</span><strong>@Model.Discount.ToString("N2")</strong></div>
+        <div><span>الضريبة</span><strong>@Model.Tax.ToString("N2")</strong></div>
+        <div class="grand"><span>المبلغ المقبوض</span><strong>@Model.Total.ToString("N2")</strong></div>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(Model.Notes)) { <div class="notes-box"><strong>ملاحظات:</strong> @Model.Notes</div> }
+    <footer class="print-footer"><span>المستلم</span><span>الدافع</span></footer>
+</section>

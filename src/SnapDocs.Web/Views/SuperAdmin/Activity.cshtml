@@ -1,0 +1,35 @@
+@model SnapDocs.Web.Models.SuperAdmin.SuperAdminActivityViewModel
+@{ ViewData["Title"] = "سجل نشاط المنصة"; }
+
+<div class="snap-page-head">
+    <div><span class="snap-eyebrow">Platform Audit</span><h1>سجل نشاط المنصة</h1><p>آخر العمليات المسجلة عبر الشركات.</p></div>
+    <a class="snap-btn snap-btn-ghost" asp-action="Index">رجوع</a>
+</div>
+
+<form method="get" class="snap-card snap-filter-bar">
+    <input name="search" value="@Model.Search" class="snap-input" placeholder="ابحث بالمستخدم، الإجراء، الكيان، أو رقم المستند" />
+    <button class="snap-btn snap-btn-primary">بحث</button>
+</form>
+
+<section class="snap-card snap-mt">
+    <div class="snap-timeline">
+    @foreach (var log in Model.Logs)
+    {
+        <div class="snap-timeline-item">
+            <div class="snap-dot"></div>
+            <div>
+                <strong>@log.ActorName - @log.Action</strong>
+                <p class="snap-subtitle">@log.Company?.Name - @log.EntityName @log.EntityNumber - @log.CreatedAtUtc.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</p>
+                @if (!string.IsNullOrWhiteSpace(log.Notes))
+                {
+                    <div class="snap-muted">@log.Notes</div>
+                }
+            </div>
+        </div>
+    }
+    @if (!Model.Logs.Any())
+    {
+        <div class="snap-empty">لا توجد نشاطات.</div>
+    }
+    </div>
+</section>

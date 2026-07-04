@@ -1,0 +1,14 @@
+@model SnapDocs.Domain.Enums.DocumentStatus
+@{
+    var text = Model switch
+    {
+        SnapDocs.Domain.Enums.DocumentStatus.Draft => "مسودة",
+        SnapDocs.Domain.Enums.DocumentStatus.Sent => "مرسل",
+        SnapDocs.Domain.Enums.DocumentStatus.Paid => "مدفوع",
+        SnapDocs.Domain.Enums.DocumentStatus.Overdue => "متأخر",
+        SnapDocs.Domain.Enums.DocumentStatus.Cancelled => "ملغي",
+        _ => Model.ToString()
+    };
+    var css = Model.ToString().ToLowerInvariant();
+}
+<span class="status-badge @css">@text</span>

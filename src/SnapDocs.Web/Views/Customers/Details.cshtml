@@ -1,0 +1,226 @@
+@model SnapDocs.Web.Models.CustomerStudioViewModel
+@{
+    ViewData["Title"] = Model.Name;
+    var riskClass = Model.CurrentBalance > Model.CreditLimit && Model.CreditLimit > 0 ? "danger" : Model.CurrentBalance > 0 ? "warning" : "success";
+    var riskText = Model.CurrentBalance > Model.CreditLimit && Model.CreditLimit > 0 ? "تجاوز حد الائتمان" : Model.CurrentBalance > 0 ? "رصيد مستحق" : "حساب آمن";
+    var collectionPercent = (int)Math.Round(Model.CollectionRate);
+    var creditPercent = (int)Math.Round(Model.CreditUsagePercent);
+}
+
+<div class="customer-studio-pro">
+    <section class="customer-studio-hero snap-studio-header">
+        <div class="customer-identity-block">
+            <div class="avatar xlarge customer-avatar-gradient">@Model.Name.Substring(0,1)</div>
+            <div>
+                <div class="customer-meta-row">
+                    <span class="snap-eyebrow">Customer Studio</span>
+                    <span class="badge @(Model.IsActive ? "success" : "danger")">@(Model.IsActive ? "نشط" : "موقوف")</span>
+                    <span class="badge @riskClass">@riskText</span>
+                </div>
+                <h1>@Model.Name</h1>
+                <p>@Model.Code · @(Model.Phone ?? "بدون هاتف") · @(Model.Email ?? "بدون بريد")</p>
+                <div class="customer-contact-chips">
+                    <a href="tel:@Model.Phone">📞 اتصال</a>
+                    <a href="mailto:@Model.Email">✉️ بريد</a>
+                    <a asp-controller="CustomerStatements" asp-action="Create" asp-route-customerId="@Model.Id">📋 كشف حساب</a>
+                    <a asp-controller="Invoices" asp-action="Create" asp-route-customerId="@Model.Id">🧾 فاتورة</a>
+                </div>
+            </div>
+        </div>
+        <div class="customer-hero-actions">
+            <a class="snap-btn" asp-action="Index">كل العملاء</a>
+            <a class="snap-btn snap-btn-secondary" asp-action="Edit" asp-route-id="@Model.Id">تعديل</a>
+            <a class="snap-btn snap-btn-primary" asp-controller="Invoices" asp-action="Create" asp-route-customerId="@Model.Id">+ فاتورة جديدة</a>
+        </div>
+    </section>
+
+    @if (TempData["Success"] is not null)
+    {
+        <div class="alert-success mt">@TempData["Success"]</div>
+    }
+
+    <section class="customer-health-row">
+        <div class="health-card balance">
+            <span>الرصيد الحالي</span>
+            <strong class="@(Model.CurrentBalance > 0 ? "danger-text" : "success-text")">@Model.CurrentBalance.ToString("N2")</strong>
+            <small>افتتاحي + فواتير - تحصيلات</small>
+        </div>
+        <div class="health-card">
+            <span>معدل التحصيل</span>
+            <strong>@Model.CollectionRate.ToString("N0")%</strong>
+            <div class="mini-progress"><i style="width:@collectionPercent%"></i></div>
+        </div>
+        <div class="health-card">
+            <span>استخدام الائتمان</span>
+            <strong>@Model.CreditUsagePercent.ToString("N0")%</strong>
+            <div class="mini-progress danger"><i style="width:@creditPercent%"></i></div>
+        </div>
+        <div class="health-card">
+            <span>آخر حركة</span>
+            <strong>@(Model.LastDocumentDate?.ToString("yyyy/MM/dd") ?? "لا يوجد")</strong>
+            <small>آخر سداد: @(Model.LastPaymentDate?.ToString("yyyy/MM/dd") ?? "لا يوجد")</small>
+        </div>
+    </section>
+
+    <section class="snap-studio-shell customer-studio-shell">
+        <main class="snap-studio-main">
+            <nav class="snap-studio-tabs customer-tabs" data-tabs="customerStudioTabs">
+                <button class="active" type="button" data-tab-target="overview">Overview</button>
+                <button type="button" data-tab-target="documents">المستندات</button>
+                <button type="button" data-tab-target="statement">كشف الحساب</button>
+                <button type="button" data-tab-target="timeline">Timeline</button>
+                <button type="button" data-tab-target="notes">ملاحظات</button>
+            </nav>
+
+            <div class="customer-tab-panel active" data-tab-panel="overview">
+                <div class="customer-overview-grid">
+                    <div class="snap-panel-v2">
+                        <div class="snap-panel-head-v2">
+                            <div><span class="snap-eyebrow">Financial Summary</span><h2>ملخص مالي</h2></div>
+                        </div>
+                        <div class="financial-grid">
+                            <div><span>إجمالي الفواتير</span><strong>@Model.TotalInvoices.ToString("N2")</strong></div>
+                            <div><span>إجمالي التحصيل</span><strong>@Model.TotalReceipts.ToString("N2")</strong></div>
+                            <div><span>متوسط الفاتورة</span><strong>@Model.AverageInvoice.ToString("N2")</strong></div>
+                            <div><span>حد الائتمان</span><strong>@Model.CreditLimit.ToString("N2")</strong></div>
+                        </div>
+                    </div>
+                    <div class="snap-panel-v2">
+                        <div class="snap-panel-head-v2">
+                            <div><span class="snap-eyebrow">Aging</span><h2>أعمار المديونية</h2></div>
+                        </div>
+                        <div class="aging-list">
+                            <div><span>حالي</span><b>@Model.Aging.Current.ToString("N2")</b></div>
+                            <div><span>1 - 30 يوم</span><b>@Model.Aging.Days1To30.ToString("N2")</b></div>
+                            <div><span>31 - 60 يوم</span><b>@Model.Aging.Days31To60.ToString("N2")</b></div>
+                            <div><span>61 - 90 يوم</span><b>@Model.Aging.Days61To90.ToString("N2")</b></div>
+                            <div class="danger-row"><span>أكثر من 90 يوم</span><b>@Model.Aging.Over90.ToString("N2")</b></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="snap-panel-v2 mt">
+                    <div class="snap-panel-head-v2">
+                        <div><span class="snap-eyebrow">Documents Mix</span><h2>توزيع المستندات</h2></div>
+                        <strong>@Model.DocumentsCount مستند</strong>
+                    </div>
+                    <div class="doc-type-grid">
+                        @foreach (var item in Model.DocumentTypeSummary)
+                        {
+                            <div class="doc-type-card">
+                                <span>@item.Icon</span>
+                                <b>@item.Name</b>
+                                <small>@item.Count مستند · @item.Total.ToString("N2")</small>
+                            </div>
+                        }
+                        @if (!Model.DocumentTypeSummary.Any())
+                        {
+                            <div class="snap-empty-state-v2"><span>📄</span><b>لا توجد مستندات</b><small>ابدأ بإنشاء فاتورة أو كشف حساب لهذا العميل.</small></div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="customer-tab-panel" data-tab-panel="documents">
+                <div class="snap-panel-v2">
+                    <div class="snap-panel-head-v2">
+                        <div><span class="snap-eyebrow">Documents</span><h2>مستندات العميل</h2></div>
+                        <div class="mini-actions wrap">
+                            <a class="btn small primary" asp-controller="Invoices" asp-action="Create" asp-route-customerId="@Model.Id">فاتورة</a>
+                            <a class="btn small secondary" asp-controller="Quotations" asp-action="Create" asp-route-customerId="@Model.Id">عرض سعر</a>
+                            <a class="btn small secondary" asp-controller="ReceiptVouchers" asp-action="Create" asp-route-customerId="@Model.Id">سند قبض</a>
+                        </div>
+                    </div>
+                    <partial name="_CustomerDocumentsTable" model="Model.RecentDocuments" />
+                </div>
+            </div>
+
+            <div class="customer-tab-panel" data-tab-panel="statement">
+                <div class="snap-panel-v2">
+                    <div class="snap-panel-head-v2">
+                        <div><span class="snap-eyebrow">Statement</span><h2>كشف حساب سريع</h2></div>
+                        <a class="snap-btn snap-btn-primary" asp-controller="CustomerStatements" asp-action="Create" asp-route-customerId="@Model.Id">إنشاء كشف رسمي</a>
+                    </div>
+                    <div class="statement-mini-summary">
+                        <div><span>رصيد افتتاحي</span><strong>@Model.OpeningBalance.ToString("N2")</strong></div>
+                        <div><span>مدين</span><strong>@Model.TotalInvoices.ToString("N2")</strong></div>
+                        <div><span>دائن</span><strong>@Model.TotalReceipts.ToString("N2")</strong></div>
+                        <div><span>الرصيد النهائي</span><strong>@Model.CurrentBalance.ToString("N2")</strong></div>
+                    </div>
+                    <partial name="_CustomerDocumentsTable" model="Model.RecentDocuments" />
+                </div>
+            </div>
+
+            <div class="customer-tab-panel" data-tab-panel="timeline">
+                <div class="snap-panel-v2">
+                    <div class="snap-panel-head-v2">
+                        <div><span class="snap-eyebrow">Timeline</span><h2>خط زمني كامل</h2></div>
+                    </div>
+                    <div class="customer-timeline-pro">
+                        @foreach (var item in Model.Timeline)
+                        {
+                            <div class="customer-timeline-item @item.Tone">
+                                <div class="timeline-icon">@item.Icon</div>
+                                <div>
+                                    <strong>@item.Title</strong>
+                                    <p>@item.Description</p>
+                                    <small>@item.Date.ToString("yyyy/MM/dd")</small>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="customer-tab-panel" data-tab-panel="notes">
+                <div class="snap-panel-v2">
+                    <div class="snap-panel-head-v2">
+                        <div><span class="snap-eyebrow">Notes</span><h2>ملاحظات ومتابعات</h2></div>
+                    </div>
+                    <div class="notes-placeholder">
+                        <span>📝</span>
+                        <h3>مركز الملاحظات جاهز للتوسعة</h3>
+                        <p>في Sprint لاحق سنضيف حفظ الملاحظات والمرفقات والمتابعة حسب المستخدم. حاليًا هذه الواجهة جاهزة بصريًا داخل Customer Studio.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <aside class="snap-studio-side customer-side-panel">
+            <div class="snap-panel-v2 customer-profile-card">
+                <h3>بيانات العميل</h3>
+                <dl class="info-list">
+                    <dt>الكود</dt><dd>@Model.Code</dd>
+                    <dt>الهاتف</dt><dd>@(Model.Phone ?? "—")</dd>
+                    <dt>البريد</dt><dd>@(Model.Email ?? "—")</dd>
+                    <dt>العنوان</dt><dd>@(Model.Address ?? "—")</dd>
+                    <dt>الرقم الضريبي</dt><dd>@(Model.TaxNumber ?? "—")</dd>
+                    <dt>تاريخ الإنشاء</dt><dd>@Model.CreatedAtUtc.ToString("yyyy/MM/dd")</dd>
+                </dl>
+            </div>
+            <div class="snap-panel-v2">
+                <h3>إجراءات سريعة</h3>
+                <div class="customer-action-stack">
+                    <a asp-controller="Invoices" asp-action="Create" asp-route-customerId="@Model.Id">🧾 إنشاء فاتورة</a>
+                    <a asp-controller="Quotations" asp-action="Create" asp-route-customerId="@Model.Id">💬 إنشاء عرض سعر</a>
+                    <a asp-controller="CustomerStatements" asp-action="Create" asp-route-customerId="@Model.Id">📋 إنشاء كشف حساب</a>
+                    <a asp-controller="ReceiptVouchers" asp-action="Create" asp-route-customerId="@Model.Id">📥 تسجيل سند قبض</a>
+                    <a asp-action="Edit" asp-route-id="@Model.Id">⚙️ تعديل الملف</a>
+                </div>
+            </div>
+            <div class="snap-panel-v2">
+                <h3>مؤشرات الحالة</h3>
+                <div class="status-pills-grid">
+                    <span>مسودات <b>@Model.DraftCount</b></span>
+                    <span>مرسل <b>@Model.SentCount</b></span>
+                    <span>مدفوع <b>@Model.PaidCount</b></span>
+                    <span>متأخر <b>@Model.OverdueCount</b></span>
+                </div>
+            </div>
+        </aside>
+    </section>
+</div>
+
+@section Scripts {
+    <script src="~/js/customer-studio.js" asp-append-version="true"></script>
+}

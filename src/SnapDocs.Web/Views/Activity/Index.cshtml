@@ -1,0 +1,4 @@
+@model IEnumerable<SnapDocs.Domain.Entities.ActivityLog>
+@{ ViewData["Title"] = "سجل الأنشطة"; }
+<div class="page-head"><div><h1>سجل الأنشطة</h1><p>Audit Log مبدئي لمتابعة العمليات المهمة.</p></div></div>
+<div class="timeline-card">@foreach(var a in Model){<div class="timeline-row"><div class="dot"></div><div><strong>@a.Action</strong><p>@a.ActorName — @a.EntityName @a.EntityNumber</p><span>@a.CreatedAtUtc.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</span>@if(!string.IsNullOrWhiteSpace(a.Notes)){<small>@a.Notes</small>}</div></div>}</div>

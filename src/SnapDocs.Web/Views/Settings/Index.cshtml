@@ -1,0 +1,52 @@
+@{
+    ViewData["Title"] = "الإعدادات";
+}
+
+<div class="snap-page-head">
+    <div>
+        <p class="snap-eyebrow">Settings Center</p>
+        <h1 class="snap-title">مركز الإعدادات</h1>
+        <p class="snap-subtitle">إدارة الشركة، الهوية، الاشتراك، المستخدمين، والطباعة من مكان واحد.</p>
+    </div>
+</div>
+
+<div class="snap-grid snap-grid-3">
+    <a class="snap-card settings-tile" asp-controller="Branding" asp-action="Index">
+        <span>🎨</span>
+        <h2>الهوية البصرية</h2>
+        <p>الشعار، الألوان، الخط، Dark Mode، وWhite Label.</p>
+    </a>
+    <a class="snap-card settings-tile" asp-controller="Templates" asp-action="Index">
+        <span>🧾</span>
+        <h2>قوالب المستندات</h2>
+        <p>تخصيص قوالب الفواتير وكشوف الحساب وعروض الأسعار.</p>
+    </a>
+    <a class="snap-card settings-tile" asp-controller="Users" asp-action="Index">
+        <span>👥</span>
+        <h2>المستخدمين والصلاحيات</h2>
+        <p>إدارة الفريق والأدوار والصلاحيات.</p>
+    </a>
+    <a class="snap-card settings-tile" asp-controller="Subscription" asp-action="Index">
+        <span>💳</span>
+        <h2>الاشتراك والفوترة</h2>
+        <p>الباقة الحالية، حدود الاستخدام، وفواتير الاشتراك.</p>
+    </a>
+    <a class="snap-card settings-tile" asp-controller="Pwa" asp-action="Index">
+        <span>📱</span>
+        <h2>PWA</h2>
+        <p>تثبيت التطبيق، Offline، والتحديثات.</p>
+    </a>
+    <a class="snap-card settings-tile" asp-controller="Print" asp-action="Templates">
+        <span>🖨️</span>
+        <h2>الطباعة</h2>
+        <p>إعدادات A4، Watermark، QR، Footer.</p>
+    </a>
+</div>
+
+<style>
+    .settings-tile{display:block;transition:.18s ease;min-height:170px}
+    .settings-tile:hover{transform:translateY(-3px);border-color:var(--snap-primary)}
+    .settings-tile span{font-size:34px}
+    .settings-tile h2{margin:14px 0 8px;font-size:20px}
+    .settings-tile p{margin:0;color:var(--snap-muted);line-height:1.8}
+</style>

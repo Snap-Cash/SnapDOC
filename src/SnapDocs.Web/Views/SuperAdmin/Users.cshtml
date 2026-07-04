@@ -1,0 +1,45 @@
+@model SnapDocs.Web.Models.SuperAdmin.SuperAdminUsersViewModel
+@{ ViewData["Title"] = "مستخدمي المنصة"; }
+
+<div class="snap-page-head">
+    <div><span class="snap-eyebrow">Platform Users</span><h1>مستخدمي المنصة</h1><p>متابعة المستخدمين عبر كل الشركات.</p></div>
+    <a class="snap-btn snap-btn-ghost" asp-action="Index">رجوع</a>
+</div>
+
+<form method="get" class="snap-card snap-filter-bar">
+    <input name="search" value="@Model.Search" class="snap-input" placeholder="اسم أو بريد المستخدم" />
+    <select name="role" class="snap-input">
+        <option value="">كل الأدوار</option>
+        <option value="Owner" selected="@(Model.Role == "Owner")">Owner</option>
+        <option value="Admin" selected="@(Model.Role == "Admin")">Admin</option>
+        <option value="Accountant" selected="@(Model.Role == "Accountant")">Accountant</option>
+        <option value="Sales" selected="@(Model.Role == "Sales")">Sales</option>
+        <option value="Viewer" selected="@(Model.Role == "Viewer")">Viewer</option>
+    </select>
+    <button class="snap-btn snap-btn-primary">بحث</button>
+</form>
+
+<section class="snap-card snap-mt">
+    <div class="snap-table-wrap">
+        <table class="snap-table">
+            <thead><tr><th>المستخدم</th><th>البريد</th><th>الدور</th><th>مفعل</th><th>آخر دخول</th><th>تاريخ الإنشاء</th></tr></thead>
+            <tbody>
+            @foreach (var user in Model.Users)
+            {
+                <tr>
+                    <td>@user.FullName</td>
+                    <td>@user.Email</td>
+                    <td><span class="snap-badge">@user.Role</span></td>
+                    <td>@(user.IsActive ? "نعم" : "لا")</td>
+                    <td>@(user.LastLoginAt?.ToLocalTime().ToString("yyyy/MM/dd HH:mm") ?? "-")</td>
+                    <td>@user.CreatedAtUtc.ToLocalTime().ToString("yyyy/MM/dd")</td>
+                </tr>
+            }
+            @if (!Model.Users.Any())
+            {
+                <tr><td colspan="6" class="snap-empty-row">لا توجد نتائج.</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>

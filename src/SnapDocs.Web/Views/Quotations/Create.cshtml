@@ -1,0 +1,131 @@
+@model SnapDocs.Web.Models.QuotationCreateViewModel
+@{ ViewData["Title"] = "Quotation Studio Pro"; }
+
+<div class="quote-studio-hero">
+    <div>
+        <span class="eyebrow">💼 Sprint 18 · Quotation Studio Pro</span>
+        <h1>عرض سعر جديد</h1>
+        <p>أنشئ عرض سعر احترافي بصلاحية محددة، بنود ديناميكية، ملخص مباشر، وشروط قابلة للطباعة والمشاركة.</p>
+    </div>
+    <div class="quote-studio-mini">
+        <div><span>Workflow</span><strong>Draft</strong></div>
+        <div><span>Valid</span><strong>15 يوم</strong></div>
+        <div><span>Convert</span><strong>Invoice</strong></div>
+        <div><span>Total</span><strong id="floatingQuoteTotal">0.00</strong></div>
+    </div>
+</div>
+
+<form asp-action="Create" method="post" class="quote-studio-shell" id="docForm">
+    <div class="quote-studio-main">
+        <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+        <div class="quote-tabs no-print">
+            <button type="button" class="quote-tab active" data-quote-tab="overview" onclick="QuotationStudio.openTab('overview')">البيانات</button>
+            <button type="button" class="quote-tab" data-quote-tab="items" onclick="QuotationStudio.openTab('items')">البنود</button>
+            <button type="button" class="quote-tab" data-quote-tab="pricing" onclick="QuotationStudio.openTab('pricing')">الخصم والضريبة</button>
+            <button type="button" class="quote-tab" data-quote-tab="terms" onclick="QuotationStudio.openTab('terms')">الشروط</button>
+            <button type="button" class="quote-tab" data-quote-tab="workflow" onclick="QuotationStudio.openTab('workflow')">Workflow</button>
+        </div>
+
+        <section class="quote-section active" data-quote-section="overview">
+            <div class="quote-panel">
+                <div class="quote-panel-head">
+                    <div><h2>بيانات العرض</h2><p>اختار العميل وفترة صلاحية عرض السعر.</p></div>
+                    <span class="quote-pill">Draft Quotation</span>
+                </div>
+                <div class="quote-form-grid">
+                    <label>العميل<select asp-for="CustomerId" asp-items="ViewBag.Customers"><option value="">بدون عميل</option></select></label>
+                    <label>تاريخ العرض<input asp-for="DocumentDate" type="date" /></label>
+                    <label>صالح حتى<input asp-for="ValidUntil" type="date" /></label>
+                    <label>رقم العرض<input value="سيتم توليده تلقائيًا" disabled /></label>
+                    <label>الحالة<input value="مسودة" disabled /></label>
+                    <label>العملة<input value="EGP" disabled /></label>
+                </div>
+            </div>
+        </section>
+
+        <section class="quote-section" data-quote-section="items">
+            <div class="quote-panel">
+                <div class="quote-panel-head">
+                    <div><h2>بنود عرض السعر</h2><p>اختر منتج/خدمة أو أضف بندًا يدويًا.</p></div>
+                    <button type="button" class="btn primary" onclick="addItem();QuotationStudio.updateTotals();">+ إضافة بند</button>
+                </div>
+                <div class="quote-items-tools">
+                    <div class="searchbox wide"><span>🔎</span><input type="search" placeholder="بحث سريع داخل البنود" /></div>
+                    <button type="button" class="btn secondary" onclick="QuotationStudio.focusItems()">الانتقال للبنود</button>
+                </div>
+                <div class="quote-table-wrap">
+                    <table class="quote-items" id="itemsTable">
+                        <thead><tr><th>المنتج</th><th>الوصف</th><th>الكمية</th><th>السعر</th><th>خصم</th><th>الإجمالي</th><th></th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td data-label="المنتج"><select name="Items[0].ProductId" class="product-select" onchange="applyProduct(this);QuotationStudio.updateTotals();"><option value="">اختيار منتج</option>@foreach (var item in (SelectList)ViewBag.Products){<option value="@item.Value">@item.Text</option>}</select></td>
+                                <td data-label="الوصف"><input name="Items[0].Description" value="خدمة / منتج" /></td>
+                                <td data-label="الكمية"><input name="Items[0].Quantity" type="number" step="0.001" value="1" oninput="recalc();QuotationStudio.updateTotals();" /></td>
+                                <td data-label="السعر"><input name="Items[0].UnitPrice" type="number" step="0.01" value="0" oninput="recalc();QuotationStudio.updateTotals();" /></td>
+                                <td data-label="خصم"><input name="Items[0].Discount" type="number" step="0.01" value="0" oninput="recalc();QuotationStudio.updateTotals();" /></td>
+                                <td data-label="الإجمالي" class="line-total">0.00</td>
+                                <td data-label="إجراء"><button type="button" class="btn small danger" onclick="removeRow(this);QuotationStudio.updateTotals();">حذف</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <span asp-validation-for="Items" class="validation"></span>
+            </div>
+        </section>
+
+        <section class="quote-section" data-quote-section="pricing">
+            <div class="quote-panel">
+                <div class="quote-panel-head"><div><h2>الخصم والضريبة</h2><p>اضبط خصم العرض ونسبة الضريبة.</p></div></div>
+                <div class="quote-form-grid">
+                    <label>خصم العرض<input asp-for="Discount" type="number" step="0.01" oninput="recalc();QuotationStudio.updateTotals();" /></label>
+                    <label>ضريبة %<input asp-for="TaxRate" type="number" step="0.01" oninput="recalc();QuotationStudio.updateTotals();" /></label>
+                    <label>طريقة التسليم<input value="حسب الاتفاق" disabled /></label>
+                </div>
+            </div>
+        </section>
+
+        <section class="quote-section" data-quote-section="terms">
+            <div class="quote-panel">
+                <div class="quote-panel-head"><div><h2>الشروط والملاحظات</h2><p>ستظهر هذه الشروط في الطباعة ورابط التحقق.</p></div></div>
+                <label class="quote-field">شروط عرض السعر<textarea asp-for="Terms" rows="7" placeholder="مثال: العرض صالح حتى التاريخ المحدد، الأسعار لا تشمل مصاريف الشحن، مدة التسليم 3 أيام عمل..."></textarea></label>
+            </div>
+        </section>
+
+        <section class="quote-section" data-quote-section="workflow">
+            <div class="quote-panel soft">
+                <div class="quote-panel-head"><div><h2>Workflow</h2><p>رحلة عرض السعر من المسودة إلى التحويل لفاتورة.</p></div></div>
+                <div class="quote-workflow">
+                    <div class="quote-step done"><span>1</span><div><b>Draft</b><small>إنشاء العرض ومراجعته داخليًا.</small></div></div>
+                    <div class="quote-step"><span>2</span><div><b>Sent</b><small>إرساله للعميل عبر واتساب أو PDF.</small></div></div>
+                    <div class="quote-step"><span>3</span><div><b>Accepted</b><small>تحويل العرض إلى فاتورة بيع.</small></div></div>
+                    <div class="quote-step"><span>4</span><div><b>Expired</b><small>انتهاء الصلاحية إن لم يتم القبول.</small></div></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <aside class="quote-side no-print">
+        <div class="quote-panel">
+            <div class="quote-panel-head"><h3>ملخص مباشر</h3></div>
+            <div class="quote-total-row"><span>الإجمالي</span><strong id="subTotal">0.00</strong></div>
+            <div class="quote-total-row"><span>الخصم</span><strong id="docDiscount">0.00</strong></div>
+            <div class="quote-total-row"><span>الضريبة</span><strong id="taxValue">0.00</strong></div>
+            <div class="quote-total-row grand"><span>صافي العرض</span><strong id="grandTotal">0.00</strong></div>
+            <div class="quote-validity"><span>صلاحية العرض</span><b>حتى التاريخ المحدد</b></div>
+        </div>
+        <div class="quote-panel">
+            <h3>الإجراءات</h3>
+            <div class="quote-actions-stack">
+                <button class="btn primary" type="submit">حفظ عرض السعر</button>
+                <a class="btn secondary" asp-action="Index">إلغاء</a>
+            </div>
+        </div>
+    </aside>
+</form>
+
+@section Scripts {
+    <script>window.productCatalog = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ProductCatalog));</script>
+    <script src="~/js/document-lines.js" asp-append-version="true"></script>
+    <script src="~/js/quotation-studio-pro.js" asp-append-version="true"></script>
+}

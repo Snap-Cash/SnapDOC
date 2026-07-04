@@ -1,0 +1,19 @@
+@{
+    ViewData["Title"] = "الصلاحيات";
+    var modules = new[] { "الفواتير", "عروض الأسعار", "كشوف الحساب", "العملاء", "الإعدادات" };
+    var actions = new[] { "عرض", "إنشاء", "تعديل", "حذف", "اعتماد", "طباعة", "إرسال" };
+}
+<div class="snap-page-head">
+    <div><span class="snap-eyebrow">Security</span><h1>مصفوفة الصلاحيات</h1><p>نموذج أولي للصلاحيات الدقيقة حسب الدور والمستند.</p></div>
+</div>
+<section class="snap-card snap-table-card">
+    <table class="snap-table">
+        <thead><tr><th>الوحدة</th>@foreach (var action in actions){<th>@action</th>}</tr></thead>
+        <tbody>
+        @foreach (var module in modules)
+        {
+            <tr><td><strong>@module</strong></td>@foreach (var action in actions){<td><span class="snap-badge snap-badge-success">مسموح</span></td>}</tr>
+        }
+        </tbody>
+    </table>
+</section>

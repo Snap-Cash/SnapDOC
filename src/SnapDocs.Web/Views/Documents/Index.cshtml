@@ -1,0 +1,17 @@
+@{ ViewData["Title"] = "مركز المستندات"; }
+<div class="page-head"><div><h1>مركز المستندات</h1><p>كل مستند أصبح مستقل بذاته: Controller + ViewModel + Views + Print Template.</p></div></div>
+
+<div class="doc-framework-note">
+    <h2>Document Studio Framework</h2>
+    <p>تمت إضافة إطار موحد لكل المستندات: Header، KPIs، Tabs، Timeline، Summary Panel، Actions، Print، Verify، ومشاركة واتساب. أي مستند جديد يستطيع استخدام نفس الشاشة من خلال <strong>/DocumentStudio/Show/{id}</strong>.</p>
+</div>
+<div class="module-grid">
+    <a class="module-card" asp-controller="Invoices" asp-action="Index"><span class="emoji">🧾</span><strong>الفواتير</strong><span>قائمة وإنشاء وطباعة فواتير البيع</span></a>
+    <a class="module-card" asp-controller="Quotations" asp-action="Index"><span class="emoji">💰</span><strong>عروض الأسعار</strong><span>مستند مستقل بشروط وصلاحية</span></a>
+    <a class="module-card" asp-controller="ReceiptVouchers" asp-action="Index"><span class="emoji">📥</span><strong>سندات القبض</strong><span>نموذج قبض منفصل</span></a>
+    <a class="module-card" asp-controller="PaymentVouchers" asp-action="Index"><span class="emoji">📤</span><strong>سندات الصرف</strong><span>نموذج صرف منفصل</span></a>
+    <a class="module-card" asp-controller="DeliveryNotes" asp-action="Index"><span class="emoji">📦</span><strong>أذونات التسليم</strong><span>تسليم بدون أسعار</span></a>
+    <a class="module-card" asp-controller="CustomerStatements" asp-action="Index"><span class="emoji">📋</span><strong>كشوف الحساب</strong><span>حركات مدين ودائن ورصيد</span></a>
+    <a class="module-card" asp-controller="CreditNotes" asp-action="Index"><span class="emoji">🟢</span><strong>إشعارات دائنة</strong><span>تخفيض رصيد العميل / مرتجعات / خصومات</span></a>
+    <a class="module-card" asp-controller="DebitNotes" asp-action="Index"><span class="emoji">🔴</span><strong>إشعارات مدينة</strong><span>زيادة رصيد العميل / تسويات / رسوم</span></a>
+</div>

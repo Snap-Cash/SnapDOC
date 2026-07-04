@@ -1,0 +1,32 @@
+@model SnapDocs.Web.Models.Auth.RegisterTenantViewModel
+@{
+    Layout = null;
+}
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>إنشاء شركة - SnapDocs</title>
+    <link rel="stylesheet" href="~/css/snapui.css" asp-append-version="true" />
+</head>
+<body class="snap-auth-page">
+    <main class="snap-auth-shell">
+        <section class="snap-auth-card snap-auth-card-wide">
+            <div class="snap-brand-mark">SD</div>
+            <h1>ابدأ تجربة SnapDocs</h1>
+            <p>أنشئ مساحة عمل للشركة مع تجربة مجانية 14 يوم.</p>
+            <form asp-action="Register" method="post" class="snap-form-grid">
+                <div asp-validation-summary="ModelOnly" class="snap-validation snap-span-2"></div>
+                <div><label>اسم الشركة</label><input asp-for="CompanyName" class="snap-input" /></div>
+                <div><label>اسم المسؤول</label><input asp-for="OwnerName" class="snap-input" /></div>
+                <div><label>البريد الإلكتروني</label><input asp-for="Email" class="snap-input" /></div>
+                <div><label>كلمة المرور</label><input asp-for="Password" class="snap-input" /></div>
+                <div class="snap-span-2"><label>الباقة</label><select asp-for="PlanCode" class="snap-input"><option value="FREE">Free</option><option value="BASIC">Basic</option><option value="PRO">Pro</option></select></div>
+                <button class="snap-btn snap-btn-primary snap-btn-block snap-span-2" type="submit">إنشاء الحساب</button>
+            </form>
+            <div class="snap-auth-footer">لديك حساب؟ <a asp-action="Login">تسجيل الدخول</a></div>
+        </section>
+    </main>
+</body>
+</html>

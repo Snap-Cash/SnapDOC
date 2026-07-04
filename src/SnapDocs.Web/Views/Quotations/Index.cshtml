@@ -1,0 +1,76 @@
+@model IReadOnlyList<SnapDocs.Domain.Entities.Document>
+@using SnapDocs.Domain.Enums
+@{ ViewData["Title"] = "Quotation Studio"; }
+
+<div class="quote-hero">
+    <div>
+        <span class="eyebrow">Sprint 18 · Quotation Studio Pro</span>
+        <h1>عروض الأسعار</h1>
+        <p>إدارة عروض الأسعار باحترافية: صلاحية العرض، حالات، مشاركة، طباعة، وتحويل مباشر إلى فاتورة.</p>
+    </div>
+    <div class="quote-hero-actions">
+        <a class="btn primary" asp-action="Create">+ عرض سعر جديد</a>
+        <a class="btn secondary" asp-controller="Documents" asp-action="Index">كل المستندات</a>
+    </div>
+</div>
+
+@if (TempData["Success"] is not null) { <div class="alert-success">@TempData["Success"]</div> }
+
+<form method="get" class="quote-filter-card no-print">
+    <div class="searchbox wide"><span>🔎</span><input name="q" value="@ViewBag.Query" placeholder="بحث بالرقم، العميل، أو كود التحقق" /></div>
+    <select name="status">
+        <option value="">كل الحالات</option>
+        @foreach (var item in Enum.GetValues<DocumentStatus>())
+        {
+            <option value="@item" selected="@(ViewBag.Status == item)">@item</option>
+        }
+    </select>
+    <button class="btn secondary" type="submit">تصفية</button>
+</form>
+
+<div class="quote-stats-grid">
+    <div class="quote-stat"><span>عدد العروض</span><strong>@Model.Count</strong></div>
+    <div class="quote-stat"><span>إجمالي العروض</span><strong>@Model.Sum(x => x.Total).ToString("N2")</strong></div>
+    <div class="quote-stat"><span>العروض المرسلة</span><strong>@Model.Count(x => x.Status == DocumentStatus.Sent)</strong></div>
+    <div class="quote-stat"><span>منتهية الصلاحية</span><strong>@Model.Count(x => x.DueDate.HasValue && x.DueDate.Value.Date < DateTime.Today && x.Status != DocumentStatus.Paid)</strong></div>
+</div>
+
+<div class="quote-card-grid">
+@if (!Model.Any())
+{
+    <div class="empty-state full-width">
+        <div class="empty-icon">💼</div>
+        <h3>لا توجد عروض أسعار بعد</h3>
+        <p>ابدأ بإنشاء أول عرض سعر، ثم حوله إلى فاتورة عند قبول العميل.</p>
+        <a class="btn primary" asp-action="Create">إنشاء عرض سعر</a>
+    </div>
+}
+@foreach (var doc in Model)
+{
+    var isExpired = doc.DueDate.HasValue && doc.DueDate.Value.Date < DateTime.Today && doc.Status != DocumentStatus.Paid;
+    <article class="quote-card @(isExpired ? "expired" : "")">
+        <div class="quote-card-head">
+            <div>
+                <strong>@doc.Number</strong>
+                <span>@(doc.Customer?.Name ?? "بدون عميل")</span>
+            </div>
+            <partial name="_DocumentStatusBadge" model="doc.Status" />
+        </div>
+        <div class="quote-card-body">
+            <div><span>التاريخ</span><b>@doc.DocumentDate.ToString("yyyy/MM/dd")</b></div>
+            <div><span>صالح حتى</span><b>@(doc.DueDate?.ToString("yyyy/MM/dd") ?? "غير محدد")</b></div>
+            <div><span>الإجمالي</span><b>@doc.Total.ToString("N2")</b></div>
+            <div><span>Verify</span><b>@doc.VerifyCode</b></div>
+        </div>
+        @if (isExpired)
+        {
+            <div class="quote-expired-note">انتهت صلاحية العرض</div>
+        }
+        <div class="quote-card-actions">
+            <a class="btn small primary" asp-action="Details" asp-route-id="@doc.Id">فتح Studio</a>
+            <a class="btn small secondary" asp-controller="Print" asp-action="Document" asp-route-id="@doc.Id">طباعة</a>
+            <a class="btn small secondary" href="https://wa.me/?text=@Uri.EscapeDataString($"عرض سعر رقم {doc.Number} بقيمة {doc.Total:N2} - كود التحقق {doc.VerifyCode}")" target="_blank">واتساب</a>
+        </div>
+    </article>
+}
+</div>

@@ -1,0 +1,35 @@
+@model SnapDocs.Web.Models.ProductCreateViewModel
+@{
+    ViewData["Title"] = "إضافة منتج / خدمة";
+}
+
+<div class="page-head">
+    <div>
+        <h1>إضافة منتج / خدمة</h1>
+        <p>أنشئ بندًا يمكن استخدامه لاحقًا في الفواتير وعروض الأسعار.</p>
+    </div>
+    <a class="btn secondary" asp-action="Index">رجوع</a>
+</div>
+
+<form method="post" class="form-card studio-form">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="form-grid">
+        <div class="form-field"><label asp-for="Code"></label><input asp-for="Code" placeholder="يترك فارغًا للترقيم التلقائي" /></div>
+        <div class="form-field"><label asp-for="Name"></label><input asp-for="Name" /></div>
+        <div class="form-field"><label asp-for="Category"></label><input asp-for="Category" /></div>
+        <div class="form-field"><label asp-for="UnitName"></label><input asp-for="UnitName" /></div>
+        <div class="form-field"><label asp-for="SalePrice"></label><input asp-for="SalePrice" type="number" step="0.01" /></div>
+        <div class="form-field"><label asp-for="CostPrice"></label><input asp-for="CostPrice" type="number" step="0.01" /></div>
+        <div class="form-field"><label asp-for="TaxRate"></label><input asp-for="TaxRate" type="number" step="0.01" /></div>
+        <div class="form-field"><label asp-for="OpeningQuantity"></label><input asp-for="OpeningQuantity" type="number" step="0.001" /></div>
+        <div class="form-field"><label asp-for="ReorderLevel"></label><input asp-for="ReorderLevel" type="number" step="0.001" /></div>
+        <div class="form-field check-field"><label><input asp-for="IsService" /> @Html.DisplayNameFor(x => x.IsService)</label></div>
+        <div class="form-field full"><label asp-for="Description"></label><textarea asp-for="Description" rows="4"></textarea></div>
+    </div>
+    <div class="form-actions">
+        <button class="btn primary" type="submit">حفظ</button>
+        <a class="btn secondary" asp-action="Index">إلغاء</a>
+    </div>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

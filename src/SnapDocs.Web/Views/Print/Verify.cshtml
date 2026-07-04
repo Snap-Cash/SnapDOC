@@ -1,0 +1,29 @@
+@model SnapDocs.Domain.Entities.Document
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>تحقق من المستند</title>
+    <link rel="stylesheet" href="~/css/snapui.css" />
+    <link rel="stylesheet" href="~/css/print-engine.css" />
+</head>
+<body class="verify-body">
+    <main class="verify-card">
+        <div class="verify-icon">✓</div>
+        <h1>تم التحقق من المستند</h1>
+        <p>هذا المستند مسجل داخل SnapDocs Demo Workspace.</p>
+        <dl>
+            <dt>رقم المستند</dt><dd>@Model.Number</dd>
+            <dt>النوع</dt><dd>@Model.Type</dd>
+            <dt>الحالة</dt><dd>@Model.Status</dd>
+            <dt>العميل</dt><dd>@(Model.Customer?.Name ?? "-")</dd>
+            <dt>القيمة</dt><dd>@Model.Total.ToString("N2")</dd>
+            <dt>كود التحقق</dt><dd>@Model.VerifyCode</dd>
+        </dl>
+    </main>
+</body>
+</html>

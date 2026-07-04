@@ -1,0 +1,48 @@
+@model IEnumerable<SnapDocs.Domain.Entities.DocumentTemplateSetting>
+@using SnapDocs.Domain.Enums
+@{
+    ViewData["Title"] = "قوالب الطباعة";
+}
+<section class="page-head">
+    <div>
+        <span class="eyebrow">Print Engine Pro</span>
+        <h1>قوالب الطباعة</h1>
+        <p>تحكم في شكل الطباعة واللون والـ QR والـ Watermark لكل نوع مستند.</p>
+    </div>
+</section>
+
+<div class="snap-grid two">
+@foreach (var item in Model)
+{
+    <form class="snap-card template-card" method="post" asp-action="UpdateTemplate">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@item.Id" />
+        <div class="template-preview" style="--preview-color:@item.AccentColor">
+            <span></span><strong>@item.DocumentType</strong><small>@item.TemplateName</small>
+        </div>
+        <div class="form-grid two">
+            <label>القالب
+                <select name="templateName" class="snap-input">
+                    <option selected="@(item.TemplateName == "Corporate")">Corporate</option>
+                    <option selected="@(item.TemplateName == "Classic")">Classic</option>
+                    <option selected="@(item.TemplateName == "Modern")">Modern</option>
+                    <option selected="@(item.TemplateName == "Minimal")">Minimal</option>
+                </select>
+            </label>
+            <label>اللون
+                <input class="snap-input" name="accentColor" type="color" value="@item.AccentColor" />
+            </label>
+        </div>
+        <label>Footer Text
+            <input class="snap-input" name="footerText" value="@item.FooterText" />
+        </label>
+        <div class="template-switches">
+            <label><input type="checkbox" name="showQrCode" value="true" checked="@item.ShowQrCode" /> QR Code</label>
+            <input type="hidden" name="showQrCode" value="false" />
+            <label><input type="checkbox" name="showWatermark" value="true" checked="@item.ShowWatermark" /> Watermark</label>
+            <input type="hidden" name="showWatermark" value="false" />
+        </div>
+        <button class="snap-btn primary" type="submit">حفظ القالب</button>
+    </form>
+}
+</div>

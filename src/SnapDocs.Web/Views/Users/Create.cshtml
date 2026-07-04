@@ -1,0 +1,20 @@
+@model SnapDocs.Domain.Entities.CompanyUser
+@using SnapDocs.Domain.Enums
+@{ ViewData["Title"] = "إضافة مستخدم"; }
+<div class="page-head"><div><h1>إضافة مستخدم</h1><p>إضافة مستخدم تجريبي لصلاحيات الشركة.</p></div></div>
+<form method="post" class="form-card">@Html.AntiForgeryToken()
+<div class="form-grid">
+<label>الاسم الكامل<input asp-for="FullName" required /></label>
+<label>البريد الإلكتروني<input asp-for="Email" type="email" required /></label>
+<label>الدور<select asp-for="Role" asp-items="Html.GetEnumSelectList<UserRole>()"></select></label>
+</div>
+<div class="permission-grid mt">
+<label><input asp-for="CanCreateDocuments" /> إنشاء مستندات</label>
+<label><input asp-for="CanApproveDocuments" /> اعتماد مستندات</label>
+<label><input asp-for="CanCancelDocuments" /> إلغاء مستندات</label>
+<label><input asp-for="CanManageCustomers" /> إدارة العملاء</label>
+<label><input asp-for="CanManageSettings" /> إدارة الإعدادات</label>
+<label><input asp-for="IsActive" /> مستخدم نشط</label>
+</div>
+<div class="form-actions mt"><button class="btn primary" type="submit">حفظ المستخدم</button><a class="btn" asp-action="Index">رجوع</a></div>
+</form>

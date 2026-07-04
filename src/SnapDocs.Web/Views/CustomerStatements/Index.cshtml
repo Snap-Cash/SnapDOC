@@ -1,0 +1,54 @@
+@model IReadOnlyList<SnapDocs.Domain.Entities.Document>
+@{
+    ViewData["Title"] = "كشوف الحساب";
+}
+
+<div class="page-head">
+    <div>
+        <h1>كشوف الحساب</h1>
+        <p>Statement Studio مستقل لحفظ ومعاينة وطباعة كشوف حساب العملاء.</p>
+    </div>
+    <a class="btn primary" asp-action="Create">+ كشف حساب جديد</a>
+</div>
+
+@if (TempData["Success"] is not null)
+{
+    <div class="alert-success">@TempData["Success"]</div>
+}
+
+<div class="kpi-grid statement-kpis">
+    <div class="kpi-card"><span>كشوف محفوظة</span><strong>@Model.Count</strong></div>
+    <div class="kpi-card"><span>إجمالي أرصدة مدينة</span><strong>@Model.Where(x => x.Total > 0).Sum(x => x.Total).ToString("N2")</strong></div>
+    <div class="kpi-card"><span>إجمالي أرصدة دائنة</span><strong>@Math.Abs(Model.Where(x => x.Total < 0).Sum(x => x.Total)).ToString("N2")</strong></div>
+    <div class="kpi-card"><span>آخر كشف</span><strong>@(Model.FirstOrDefault()?.DocumentDate.ToString("yyyy/MM/dd") ?? "-")</strong></div>
+</div>
+
+<div class="table-card">
+    <table class="data-table">
+        <thead>
+        <tr><th>الرقم</th><th>العميل</th><th>التاريخ</th><th>الحالة</th><th>الرصيد النهائي</th><th></th></tr>
+        </thead>
+        <tbody>
+        @if (!Model.Any())
+        {
+            <tr><td colspan="6">لا توجد كشوف محفوظة بعد.</td></tr>
+        }
+        @foreach (var doc in Model)
+        {
+            <tr>
+                <td><strong>@doc.Number</strong><br/><span>Verify: @doc.VerifyCode</span></td>
+                <td>@(doc.Customer?.Name ?? "بدون عميل")</td>
+                <td>@doc.DocumentDate.ToString("yyyy/MM/dd")</td>
+                <td><partial name="_DocumentStatusBadge" model="doc.Status" /></td>
+                <td><strong>@Math.Abs(doc.Total).ToString("N2")</strong> <span>@(doc.Total > 0 ? "مدين" : doc.Total < 0 ? "دائن" : "متزن")</span></td>
+                <td>
+                    <div class="mini-actions">
+                        <a class="btn small secondary" asp-action="Details" asp-route-id="@doc.Id">فتح</a>
+                        <a class="btn small secondary" href="https://wa.me/?text=@Uri.EscapeDataString($"كشف حساب رقم {doc.Number} للعميل {doc.Customer?.Name} برصيد {doc.Total:N2}")" target="_blank">واتساب</a>
+                    </div>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

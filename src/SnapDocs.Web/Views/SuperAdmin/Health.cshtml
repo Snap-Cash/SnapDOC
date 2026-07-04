@@ -1,0 +1,27 @@
+@model SnapDocs.Web.Models.SuperAdmin.SuperAdminHealthViewModel
+@{ ViewData["Title"] = "حالة النظام"; }
+
+<div class="snap-page-head">
+    <div><span class="snap-eyebrow">System Health</span><h1>حالة النظام</h1><p>فحص سريع للاتصال وقواعد البيانات والأعداد الأساسية.</p></div>
+    <a class="snap-btn snap-btn-ghost" asp-action="Index">رجوع</a>
+</div>
+
+<div class="snap-grid-4">
+    <div class="snap-card snap-stat-card"><span>قاعدة البيانات</span><strong>@(Model.DatabaseOk ? "متصل" : "خطأ")</strong><small>@Model.DatabaseStatus</small></div>
+    <div class="snap-card snap-stat-card"><span>البيئة</span><strong>@Model.EnvironmentName</strong><small>Environment</small></div>
+    <div class="snap-card snap-stat-card"><span>وقت السيرفر</span><strong>@Model.ServerUtcNow.ToString("HH:mm")</strong><small>@Model.ServerUtcNow.ToString("yyyy/MM/dd") UTC</small></div>
+    <div class="snap-card snap-stat-card"><span>فواتير الاشتراك</span><strong>@Model.BillingInvoices</strong><small>Billing invoices</small></div>
+</div>
+
+<div class="snap-grid-4 snap-mt">
+    <div class="snap-card snap-stat-card"><span>Tenants</span><strong>@Model.Tenants</strong><small>Companies groups</small></div>
+    <div class="snap-card snap-stat-card"><span>Companies</span><strong>@Model.Companies</strong><small>Business profiles</small></div>
+    <div class="snap-card snap-stat-card"><span>Users</span><strong>@Model.Users</strong><small>App users</small></div>
+    <div class="snap-card snap-stat-card"><span>Documents</span><strong>@Model.Documents</strong><small>Business docs</small></div>
+</div>
+
+<section class="snap-card snap-mt">
+    <h2>ملاحظات النشر</h2>
+    <p class="snap-subtitle">تأكد عند النشر أن Connection String تحتوي على TrustServerCertificate=True إذا كان السيرفر المحلي يستخدم شهادة غير موثوقة.</p>
+    <code>Server=LAPTOP-83GPR518\MSSQLSERVER01;Database=SnapDocsDb;Trusted_Connection=True;MultipleActiveResultSets=True;TrustServerCertificate=True;</code>
+</section>

@@ -1,0 +1,33 @@
+@model SnapDocs.Web.Models.Auth.LoginViewModel
+@{
+    Layout = null;
+}
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>تسجيل الدخول - SnapDocs</title>
+    <link rel="stylesheet" href="~/css/snapui.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/branding.css" asp-append-version="true" />
+</head>
+<body class="snap-auth-page">
+    <main class="snap-auth-shell">
+        <section class="snap-auth-card">
+            <div class="snap-brand-mark">SD</div>
+            <h1>تسجيل الدخول</h1>
+            <p>ادخل إلى مساحة عمل شركتك على SnapDocs.</p>
+            <form asp-action="Login" method="post" class="snap-form-stack">
+                <input type="hidden" asp-for="ReturnUrl" />
+                <div asp-validation-summary="ModelOnly" class="snap-validation"></div>
+                <label>البريد الإلكتروني</label>
+                <input asp-for="Email" class="snap-input" placeholder="name@company.com" />
+                <label>كلمة المرور</label>
+                <input asp-for="Password" class="snap-input" placeholder="••••••••" />
+                <button class="snap-btn snap-btn-primary snap-btn-block" type="submit">دخول</button>
+            </form>
+            <div class="snap-auth-footer">ليس لديك حساب؟ <a asp-action="Register">أنشئ شركة جديدة</a></div>
+        </section>
+    </main>
+</body>
+</html>

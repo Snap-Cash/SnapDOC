@@ -1,0 +1,18 @@
+@model SnapDocs.Web.Models.CreditNoteCreateViewModel
+@{ ViewData["Title"] = "إشعار دائن جديد"; }
+<div class="page-head"><div><h1>إشعار دائن جديد</h1><p>Credit Note لتخفيض رصيد العميل أو تسجيل خصم/مرتجع.</p></div><a class="btn secondary" asp-action="Index">رجوع</a></div>
+<form asp-action="Create" method="post" class="studio-layout">
+    <section class="form-card studio-main">
+        <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+        <div class="form-grid">
+            <label>العميل<select asp-for="CustomerId" asp-items="ViewBag.Customers"><option value="">بدون عميل</option></select></label>
+            <label>التاريخ<input asp-for="DocumentDate" type="date" /></label>
+            <label>القيمة<input asp-for="Amount" type="number" step="0.01" /></label>
+            <label>رقم المرجع<input asp-for="ReferenceNumber" placeholder="فاتورة/مرتجع/تسوية" /></label>
+            <label class="span-2">السبب<input asp-for="Reason" /></label>
+        </div>
+        <label class="mt">ملاحظات<textarea asp-for="Notes" rows="4"></textarea></label>
+        <div class="form-actions"><button class="btn primary" type="submit">حفظ الإشعار الدائن</button><a class="btn secondary" asp-action="Index">إلغاء</a></div>
+    </section>
+    <aside class="card studio-side"><h3>تأثير المستند</h3><p class="muted">الإشعار الدائن يظهر في كشف حساب العميل كحركة دائن ويخفض الرصيد المستحق.</p><div class="summary-line"><span>نوع الحركة</span><strong>دائن</strong></div></aside>
+</form>

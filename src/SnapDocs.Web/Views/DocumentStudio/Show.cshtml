@@ -1,0 +1,171 @@
+@model SnapDocs.Web.Models.DocumentStudioViewModel
+@using SnapDocs.Domain.Enums
+@{
+    ViewData["Title"] = $"{Model.TitleAr} {Model.Document.Number}";
+    var document = Model.Document;
+    var customerName = document.Customer?.Name ?? "بدون عميل";
+}
+
+<div class="doc-studio doc-studio-@Model.AccentClass">
+    <header class="doc-studio-hero no-print">
+        <div class="doc-studio-title">
+            <span class="doc-studio-pill"><i>@Model.Icon</i> @Model.TitleEn Studio</span>
+            <h1>@Model.TitleAr @document.Number</h1>
+            <p>
+                <partial name="_DocumentStatusBadge" model="document.Status" />
+                <span> · @customerName · @document.DocumentDate.ToString("yyyy/MM/dd") · Verify: @document.VerifyCode</span>
+            </p>
+        </div>
+        <div class="doc-studio-actions">
+            <a class="snap-btn" asp-controller="@Model.ControllerName" asp-action="Details" asp-route-id="@document.Id">الصفحة الأصلية</a>
+            <a class="snap-btn" asp-controller="Print" asp-action="Preview" asp-route-id="@document.Id">Preview</a>
+            <a class="snap-btn snap-btn-primary" asp-controller="Print" asp-action="Document" asp-route-id="@document.Id" target="_blank">طباعة</a>
+            <a class="snap-btn" href="https://wa.me/?text=@Uri.EscapeDataString(Model.WhatsAppText)" target="_blank">واتساب</a>
+        </div>
+    </header>
+
+    <section class="doc-studio-metrics no-print">
+        @foreach (var metric in Model.Metrics)
+        {
+            <article class="doc-studio-metric metric-@metric.Tone">
+                <span>@metric.Label</span>
+                <strong>@metric.Value</strong>
+                <small>@metric.Hint</small>
+            </article>
+        }
+    </section>
+
+    <div class="doc-studio-layout no-print">
+        <main class="doc-studio-main">
+            <nav class="doc-studio-tabs" aria-label="Document Studio Tabs">
+                @foreach (var tab in Model.Tabs)
+                {
+                    <button type="button" class="doc-studio-tab @(tab.Key == "overview" ? "active" : "")" data-doc-studio-tab="@tab.Key">
+                        <span>@tab.Icon</span><b>@tab.Label</b>
+                    </button>
+                }
+            </nav>
+
+            <section class="doc-studio-section active" data-doc-studio-section="overview">
+                <div class="doc-panel">
+                    <div class="doc-panel-head">
+                        <div><h2>هوية المستند</h2><p>بيانات أساسية موحدة لكل المستندات.</p></div>
+                        <partial name="_DocumentStatusBadge" model="document.Status" />
+                    </div>
+                    <div class="doc-info-grid">
+                        <div><span>نوع المستند</span><strong>@Model.TitleAr</strong></div>
+                        <div><span>رقم المستند</span><strong>@document.Number</strong></div>
+                        <div><span>العميل</span><strong>@customerName</strong></div>
+                        <div><span>تاريخ المستند</span><strong>@document.DocumentDate.ToString("yyyy/MM/dd")</strong></div>
+                        <div><span>تاريخ الاستحقاق</span><strong>@(document.DueDate?.ToString("yyyy/MM/dd") ?? "-")</strong></div>
+                        <div><span>كود التحقق</span><strong>@document.VerifyCode</strong></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="doc-studio-section" data-doc-studio-section="items">
+                <div class="doc-panel">
+                    <div class="doc-panel-head"><div><h2>@(document.Type == DocumentType.CustomerStatement ? "الحركات" : "البنود")</h2><p>جدول موحد للبنود/الحركات قابل للتطبيق على كل أنواع المستندات.</p></div></div>
+                    <div class="doc-table-wrap">
+                        <table class="doc-studio-table">
+                            <thead><tr><th>البيان</th><th>الكمية</th><th>السعر</th><th>خصم</th><th>الإجمالي</th></tr></thead>
+                            <tbody>
+                            @if (!document.Items.Any())
+                            {
+                                <tr><td colspan="5"><div class="doc-empty-mini">لا توجد بنود مسجلة لهذا المستند.</div></td></tr>
+                            }
+                            @foreach (var item in document.Items)
+                            {
+                                <tr>
+                                    <td data-label="البيان">@item.Description</td>
+                                    <td data-label="الكمية">@item.Quantity.ToString("N3")</td>
+                                    <td data-label="السعر">@item.UnitPrice.ToString("N2")</td>
+                                    <td data-label="خصم">@item.Discount.ToString("N2")</td>
+                                    <td data-label="الإجمالي"><strong>@item.LineTotal.ToString("N2")</strong></td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section class="doc-studio-section" data-doc-studio-section="payment">
+                <div class="doc-panel">
+                    <div class="doc-panel-head"><div><h2>السداد والرصيد</h2><p>ملخص مالي موحد لاستخدامه في الفواتير والسندات وكشوف الحساب.</p></div></div>
+                    <div class="doc-info-grid finance">
+                        <div><span>Subtotal</span><strong>@document.SubTotal.ToString("N2")</strong></div>
+                        <div><span>Discount</span><strong>@document.Discount.ToString("N2")</strong></div>
+                        <div><span>Tax</span><strong>@document.Tax.ToString("N2")</strong></div>
+                        <div><span>Total</span><strong>@document.Total.ToString("N2")</strong></div>
+                        <div><span>Paid</span><strong>@document.PaidAmount.ToString("N2")</strong></div>
+                        <div><span>Remaining</span><strong class="@(Model.Remaining > 0 ? "danger-text" : "success-text")">@Model.Remaining.ToString("N2")</strong></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="doc-studio-section" data-doc-studio-section="notes">
+                <div class="doc-panel">
+                    <div class="doc-panel-head"><div><h2>الملاحظات</h2><p>ملاحظات المستند وشروطه.</p></div></div>
+                    <div class="doc-note-box">@(string.IsNullOrWhiteSpace(document.Notes) ? "لا توجد ملاحظات." : document.Notes)</div>
+                </div>
+            </section>
+
+            <section class="doc-studio-section" data-doc-studio-section="history">
+                <div class="doc-panel">
+                    <div class="doc-panel-head"><div><h2>Timeline</h2><p>سجل موحد يمكن ربطه لاحقًا بالـ Audit Log.</p></div></div>
+                    <div class="doc-timeline">
+                        @foreach (var item in Model.Timeline)
+                        {
+                            <div class="doc-timeline-item">
+                                <span>@item.Icon</span>
+                                <div><strong>@item.Title</strong><p>@item.Description</p><small>@item.Date.ToString("yyyy/MM/dd HH:mm")</small></div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </section>
+
+            <section class="doc-studio-section" data-doc-studio-section="print">
+                <div class="doc-panel">
+                    <div class="doc-panel-head"><div><h2>الطباعة والمشاركة</h2><p>كل المستندات تستخدم Print Engine موحد.</p></div></div>
+                    <div class="doc-print-actions">
+                        <a class="snap-btn snap-btn-primary" asp-controller="Print" asp-action="Document" asp-route-id="@document.Id" target="_blank">طباعة A4</a>
+                        <a class="snap-btn" asp-controller="Print" asp-action="Preview" asp-route-id="@document.Id">معاينة</a>
+                        @if (!string.IsNullOrWhiteSpace(Model.VerifyUrl))
+                        {
+                            <a class="snap-btn" href="@Model.VerifyUrl" target="_blank">صفحة التحقق</a>
+                        }
+                        <a class="snap-btn" href="https://wa.me/?text=@Uri.EscapeDataString(Model.WhatsAppText)" target="_blank">مشاركة واتساب</a>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <aside class="doc-studio-side">
+            <div class="doc-side-card customer">
+                <span>العميل</span>
+                <strong>@customerName</strong>
+                <p>@(document.Customer?.Phone ?? "لا يوجد هاتف")</p>
+                @if (document.CustomerId.HasValue)
+                {
+                    <a asp-controller="Customers" asp-action="Details" asp-route-id="@document.CustomerId">فتح Customer Studio</a>
+                }
+            </div>
+            <div class="doc-side-card">
+                <span>الحالة</span>
+                <partial name="_DocumentStatusBadge" model="document.Status" />
+                <small>Workflow موحد لكل المستندات، مع إمكانية تخصيص الأفعال حسب النوع.</small>
+            </div>
+            <div class="doc-side-card">
+                <span>Verify</span>
+                <strong>@document.VerifyCode</strong>
+                <small>@(string.IsNullOrWhiteSpace(Model.VerifyUrl) ? "سيتم توليد الرابط عند التشغيل." : Model.VerifyUrl)</small>
+            </div>
+        </aside>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/document-studio.js" asp-append-version="true"></script>
+}

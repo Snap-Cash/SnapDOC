@@ -1,0 +1,74 @@
+@model SnapDocs.Web.Models.DocumentCreateViewModel
+@using SnapDocs.Domain.Enums
+@{
+    ViewData["Title"] = "إنشاء مستند";
+}
+
+<div class="page-head">
+    <div>
+        <h1>إنشاء مستند</h1>
+        <p>شاشة موحدة بنفس تصميم Business: بنود ديناميكية، ملخص مباشر، وطباعة لاحقًا.</p>
+    </div>
+    <a class="btn secondary" asp-action="Index">رجوع</a>
+</div>
+
+<form asp-action="Create" method="post" class="document-builder" id="docForm">
+    <div class="form-card">
+        <div class="form-grid">
+            <label>نوع المستند
+                <select asp-for="Type" asp-items="Html.GetEnumSelectList<DocumentType>()"></select>
+            </label>
+            <label>العميل
+                <select asp-for="CustomerId" asp-items="ViewBag.Customers"><option value="">بدون عميل</option></select>
+            </label>
+            <label>تاريخ المستند <input asp-for="DocumentDate" type="date" /></label>
+            <label>تاريخ الاستحقاق <input asp-for="DueDate" type="date" /></label>
+            <label>خصم على المستند <input asp-for="Discount" type="number" step="0.01" oninput="recalc()" /></label>
+            <label>نسبة الضريبة % <input asp-for="TaxRate" type="number" step="0.01" oninput="recalc()" /></label>
+        </div>
+
+        <div class="section-title"><h2>بنود المستند</h2><button type="button" class="btn secondary" onclick="addItem()">+ إضافة بند</button></div>
+        <div class="items-wrap">
+        <table class="items-table" id="itemsTable">
+            <thead><tr><th>البيان</th><th>الكمية</th><th>السعر</th><th>خصم</th><th>الإجمالي</th><th></th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><input name="Items[0].Description" value="خدمة / منتج" /></td>
+                    <td><input name="Items[0].Quantity" type="number" step="0.01" value="1" oninput="recalc()" /></td>
+                    <td><input name="Items[0].UnitPrice" type="number" step="0.01" value="0" oninput="recalc()" /></td>
+                    <td><input name="Items[0].Discount" type="number" step="0.01" value="0" oninput="recalc()" /></td>
+                    <td class="line-total">0.00</td>
+                    <td><button type="button" class="btn small danger" onclick="removeRow(this)">حذف</button></td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+
+        <label class="mt">ملاحظات<textarea asp-for="Notes" rows="4" placeholder="شروط الدفع، مدة العرض، أو أي ملاحظات للعميل"></textarea></label>
+
+        <div class="form-actions">
+            <button class="btn primary" type="submit">حفظ المستند</button>
+            <a class="btn secondary" asp-action="Index">إلغاء</a>
+        </div>
+    </div>
+
+    <aside class="print-preview sticky-summary">
+        <h3 style="margin-top:0">ملخص مباشر</h3>
+        <div class="summary-line"><span>الإجمالي قبل الخصم</span><strong id="subTotal">0.00</strong></div>
+        <div class="summary-line"><span>خصم المستند</span><strong id="docDiscount">0.00</strong></div>
+        <div class="summary-line"><span>الضريبة</span><strong id="taxValue">0.00</strong></div>
+        <div class="summary-line total"><span>الصافي</span><strong id="grandTotal">0.00</strong></div>
+        <p style="color:var(--muted)">سيتم إنشاء رقم المستند تلقائيًا بعد الحفظ.</p>
+        <div class="qrbox">QR VERIFY<br />بعد الحفظ</div>
+    </aside>
+</form>
+
+@section Scripts {
+<script>
+let itemIndex = 1;
+function addItem(){const tbody=document.querySelector('#itemsTable tbody');const row=document.createElement('tr');row.innerHTML=`<td><input name="Items[${itemIndex}].Description" placeholder="وصف البند" /></td><td><input name="Items[${itemIndex}].Quantity" type="number" step="0.01" value="1" oninput="recalc()" /></td><td><input name="Items[${itemIndex}].UnitPrice" type="number" step="0.01" value="0" oninput="recalc()" /></td><td><input name="Items[${itemIndex}].Discount" type="number" step="0.01" value="0" oninput="recalc()" /></td><td class="line-total">0.00</td><td><button type="button" class="btn small danger" onclick="removeRow(this)">حذف</button></td>`;tbody.appendChild(row);itemIndex++;recalc();}
+function removeRow(btn){btn.closest('tr').remove();recalc();}
+function n(v){return parseFloat(v||'0')||0;}function money(v){return v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function recalc(){let subtotal=0;document.querySelectorAll('#itemsTable tbody tr').forEach(row=>{const inputs=row.querySelectorAll('input');const qty=n(inputs[1].value);const price=n(inputs[2].value);const disc=n(inputs[3].value);const line=Math.max(0,qty*price-disc);row.querySelector('.line-total').innerText=money(line);subtotal+=line;});const discount=Math.min(n(document.querySelector('[name="Discount"]').value),subtotal);const taxRate=n(document.querySelector('[name="TaxRate"]').value);const tax=(subtotal-discount)*taxRate/100;const total=subtotal-discount+tax;document.getElementById('subTotal').innerText=money(subtotal);document.getElementById('docDiscount').innerText=money(discount);document.getElementById('taxValue').innerText=money(tax);document.getElementById('grandTotal').innerText=money(total);}recalc();
+</script>
+}

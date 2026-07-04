@@ -1,0 +1,63 @@
+@model SnapDocs.Application.DTOs.SaaS.BillingDashboardDto
+@{
+    ViewData["Title"] = "الاشتراك والفوترة";
+    decimal docPercent = Model.Usage.DocumentLimit <= 0 ? 100 : Math.Min(100, (decimal)Model.Usage.DocumentsUsed / Model.Usage.DocumentLimit * 100);
+    decimal userPercent = Model.Usage.UserLimit <= 0 ? 100 : Math.Min(100, (decimal)Model.Usage.UsersUsed / Model.Usage.UserLimit * 100);
+    decimal customerPercent = Model.Usage.CustomerLimit <= 0 ? 100 : Math.Min(100, (decimal)Model.Usage.CustomersUsed / Model.Usage.CustomerLimit * 100);
+}
+<div class="snap-page-head">
+    <div>
+        <span class="snap-eyebrow">Sprint 12</span>
+        <h1>الاشتراك والفوترة</h1>
+        <p>إدارة الباقة، حدود الاستخدام، والفواتير الخاصة باشتراك الشركة.</p>
+    </div>
+    <div class="snap-actions">
+        <a class="snap-btn snap-btn-ghost" asp-action="Billing">فواتير الاشتراك</a>
+        <a class="snap-btn snap-btn-primary" asp-action="Pricing">تغيير الباقة</a>
+    </div>
+</div>
+
+@if (TempData["Success"] is not null)
+{
+    <div class="snap-alert snap-alert-success">@TempData["Success"]</div>
+}
+
+<div class="snap-grid-4">
+    <div class="snap-card snap-stat-card"><span>الباقة الحالية</span><strong>@Model.Usage.PlanCode</strong><small>@Model.Usage.Status</small></div>
+    <div class="snap-card snap-stat-card"><span>الشركة</span><strong>@Model.Usage.TenantName</strong><small>Workspace</small></div>
+    <div class="snap-card snap-stat-card"><span>الرصيد المستحق</span><strong>@Model.CurrentBalance.ToString("N2")</strong><small>@Model.CurrencyCode</small></div>
+    <div class="snap-card snap-stat-card"><span>نهاية التجربة</span><strong>@(Model.Usage.TrialEndsAt?.ToString("yyyy/MM/dd") ?? "-")</strong><small>Trial</small></div>
+</div>
+
+<section class="snap-card snap-mt">
+    <div class="snap-section-head"><h2>حدود الاستخدام</h2><span class="snap-badge">Live Usage</span></div>
+    <div class="snap-usage-row"><span>المستندات</span><strong>@Model.Usage.DocumentsUsed / @(Model.Usage.DocumentLimit <= 0 ? "غير محدود" : Model.Usage.DocumentLimit.ToString())</strong><div class="snap-progress"><i style="width:@docPercent%"></i></div></div>
+    <div class="snap-usage-row"><span>المستخدمون</span><strong>@Model.Usage.UsersUsed / @(Model.Usage.UserLimit <= 0 ? "غير محدود" : Model.Usage.UserLimit.ToString())</strong><div class="snap-progress"><i style="width:@userPercent%"></i></div></div>
+    <div class="snap-usage-row"><span>العملاء</span><strong>@Model.Usage.CustomersUsed / @(Model.Usage.CustomerLimit <= 0 ? "غير محدود" : Model.Usage.CustomerLimit.ToString())</strong><div class="snap-progress"><i style="width:@customerPercent%"></i></div></div>
+</section>
+
+<section class="snap-card snap-mt">
+    <div class="snap-section-head"><h2>آخر فواتير الاشتراك</h2><a asp-action="Billing">عرض الكل</a></div>
+    <div class="snap-table-wrap">
+        <table class="snap-table">
+            <thead><tr><th>الرقم</th><th>الباقة</th><th>التاريخ</th><th>الاستحقاق</th><th>الحالة</th><th>الإجمالي</th></tr></thead>
+            <tbody>
+            @foreach (var invoice in Model.Invoices.Take(5))
+            {
+                <tr>
+                    <td>@invoice.Number</td>
+                    <td>@invoice.PlanName</td>
+                    <td>@invoice.IssueDate.ToLocalTime().ToString("yyyy/MM/dd")</td>
+                    <td>@invoice.DueDate.ToLocalTime().ToString("yyyy/MM/dd")</td>
+                    <td><span class="snap-badge">@invoice.Status</span></td>
+                    <td>@invoice.Total.ToString("N2") @invoice.CurrencyCode</td>
+                </tr>
+            }
+            @if (!Model.Invoices.Any())
+            {
+                <tr><td colspan="6" class="snap-empty-row">لا توجد فواتير اشتراك بعد.</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>

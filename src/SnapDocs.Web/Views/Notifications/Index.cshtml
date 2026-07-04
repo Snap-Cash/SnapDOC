@@ -1,0 +1,4 @@
+@model IEnumerable<SnapDocs.Domain.Entities.Notification>
+@{ ViewData["Title"] = "التنبيهات"; }
+<div class="page-head"><div><h1>مركز التنبيهات</h1><p>تنبيهات الشركة، الاشتراك، المستندات، والمهام.</p></div><form method="post" asp-action="MarkAllRead">@Html.AntiForgeryToken()<button class="btn primary">تحديد الكل كمقروء</button></form></div>
+<div class="activity-list">@foreach(var n in Model){<div class="activity-item @(n.IsRead ? "is-read" : "")"><div class="activity-icon">@n.Icon</div><div><strong>@n.Title</strong><p>@n.Message</p><span>@n.CreatedAtUtc.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</span></div></div>}</div>

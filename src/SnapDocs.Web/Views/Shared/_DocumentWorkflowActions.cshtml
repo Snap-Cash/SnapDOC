@@ -1,0 +1,18 @@
+@model SnapDocs.Domain.Entities.Document
+@using SnapDocs.Application.Services
+@inject IDocumentWorkflowService Workflow
+@{ var actions = Workflow.GetAvailableActions(Model); }
+@if (actions.Any())
+{
+    <div class="workflow-actions no-print">
+        @foreach (var action in actions)
+        {
+            <form asp-action="ChangeStatus" method="post" class="inline-form">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <input type="hidden" name="status" value="@action.TargetStatus" />
+                <button type="submit" class="btn @action.CssClass">@action.Label</button>
+            </form>
+        }
+    </div>
+}

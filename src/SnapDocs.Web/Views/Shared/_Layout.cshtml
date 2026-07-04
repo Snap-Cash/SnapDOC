@@ -1,0 +1,264 @@
+@using Microsoft.EntityFrameworkCore
+@inject SnapDocs.Infrastructure.Persistence.SnapDocsDbContext Db
+@{
+    var title = ViewData["Title"] as string ?? "SnapDocs";
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "Dashboard";
+    var userName = User.Identity?.Name ?? "Snap User";
+    var bodyClass = $"snap-v2 controller-{controller.ToLowerInvariant()}";
+    var claimCompanyId = User.FindFirst("CompanyId")?.Value;
+    Guid.TryParse(claimCompanyId, out var currentCompanyId);
+    var branding = currentCompanyId == Guid.Empty
+        ? null
+        : Db.CompanyBrandings.AsNoTracking().FirstOrDefault(x => x.CompanyId == currentCompanyId);
+    var company = currentCompanyId == Guid.Empty
+        ? null
+        : Db.Companies.AsNoTracking().FirstOrDefault(x => x.Id == currentCompanyId);
+    var brandName = branding?.CompanyName ?? company?.Name ?? "SnapDocs";
+    var brandLogo = branding?.LogoPath ?? company?.LogoUrl;
+    var brandFavicon = branding?.FaviconPath;
+    var brandTheme = branding?.ThemeName?.ToLowerInvariant() ?? "corporate";
+    var htmlTheme = branding?.DarkMode == true ? "dark" : "light";
+    var primary = branding?.PrimaryColor ?? "#2563eb";
+    var secondary = branding?.SecondaryColor ?? "#1e293b";
+    var success = branding?.SuccessColor ?? "#22c55e";
+    var danger = branding?.DangerColor ?? "#ef4444";
+    var warning = branding?.WarningColor ?? "#f59e0b";
+    var radius = branding?.Radius ?? "22px";
+    var fontFamily = branding?.FontFamily ?? "Cairo";
+    bodyClass = $"{bodyClass} snap-theme-{brandTheme}";
+    string Active(string name) => controller.Equals(name, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="@htmlTheme">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@title - @brandName</title>
+    <link rel="manifest" href="~/manifest.json" />
+    <meta name="theme-color" content="@primary" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="@brandName" />
+    <meta name="application-name" content="@brandName" />
+    @if (!string.IsNullOrWhiteSpace(brandFavicon))
+    {
+        <link rel="icon" href="@brandFavicon" />
+        <link rel="apple-touch-icon" href="@brandFavicon" />
+    }
+    else
+    {
+        <link rel="apple-touch-icon" href="~/icons/icon-192.svg" />
+    }
+    <link rel="stylesheet" href="~/css/snapui.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/sprint14-ux.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/print-engine.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/customer-studio.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/invoice-studio-pro.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/document-studio.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/quotation-studio-pro.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/cash-studio.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/reports-pro.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/branding.css" asp-append-version="true" />
+    <style>
+        :root{
+            --snap-primary:@primary;
+            --snap-primary-2:@primary;
+            --snap-secondary:@secondary;
+            --snap-success:@success;
+            --snap-danger:@danger;
+            --snap-warning:@warning;
+            --snap-radius:@radius;
+            --snap-font:"@fontFamily", "Tahoma", system-ui, sans-serif;
+        }
+    </style>
+</head>
+<body class="@bodyClass">
+    <div class="snap-shell-v2">
+        <aside class="snap-sidebar-v2 no-print" id="snapSidebar">
+            <div class="snap-brand-v2">
+                <a class="snap-brand-mark" asp-controller="Dashboard" asp-action="Index">
+                    @if (!string.IsNullOrWhiteSpace(brandLogo))
+                    {
+                        <img class="snap-brand-logo-img" src="@brandLogo" alt="@brandName" />
+                    }
+                    else
+                    {
+                        @brandName.Substring(0, 1).ToUpperInvariant()
+                    }
+                </a>
+                <div class="snap-brand-copy">
+                    <strong>@brandName</strong>
+                    <span>@(branding?.WhiteLabel == true ? "Business Workspace" : "Powered by SnapDocs")</span>
+                </div>
+                <button class="snap-icon-btn snap-only-mobile" type="button" data-sidebar-close>×</button>
+            </div>
+
+            <nav class="snap-nav-v2" aria-label="Main Navigation">
+                <div class="snap-nav-section">
+                    <span>Workspace</span>
+                    <a class="@Active("Dashboard")" asp-controller="Dashboard" asp-action="Index"><i>🏠</i><b>الرئيسية</b></a>
+                    <a class="@Active("Documents")" asp-controller="Documents" asp-action="Index"><i>📄</i><b>المستندات</b></a>
+                    <a class="@Active("Customers")" asp-controller="Customers" asp-action="Index"><i>👥</i><b>العملاء</b></a>
+                    <a class="@Active("Products")" asp-controller="Products" asp-action="Index"><i>📦</i><b>المنتجات</b></a>
+                    <a class="@Active("Reports")" asp-controller="Reports" asp-action="Index"><i>📊</i><b>التقارير</b></a>
+                    <a class="@Active("Cash")" asp-controller="Cash" asp-action="Index"><i>💰</i><b>الخزنة</b></a>
+                </div>
+
+                <div class="snap-nav-section">
+                    <span>Documents</span>
+                    <a class="@Active("Invoices")" asp-controller="Invoices" asp-action="Index"><i>🧾</i><b>فواتير البيع</b></a>
+                    <a class="@Active("Quotations")" asp-controller="Quotations" asp-action="Index"><i>💬</i><b>عروض الأسعار</b></a>
+                    <a class="@Active("CustomerStatements")" asp-controller="CustomerStatements" asp-action="Index"><i>📋</i><b>كشوف الحساب</b></a>
+                    <a class="@Active("ReceiptVouchers")" asp-controller="ReceiptVouchers" asp-action="Index"><i>📥</i><b>سندات القبض</b></a>
+                    <a class="@Active("PaymentVouchers")" asp-controller="PaymentVouchers" asp-action="Index"><i>📤</i><b>سندات الصرف</b></a>
+                    <a class="@Active("DeliveryNotes")" asp-controller="DeliveryNotes" asp-action="Index"><i>📦</i><b>أذونات التسليم</b></a>
+                    <a class="@Active("CreditNotes")" asp-controller="CreditNotes" asp-action="Index"><i>🟢</i><b>إشعار دائن</b></a>
+                    <a class="@Active("DebitNotes")" asp-controller="DebitNotes" asp-action="Index"><i>🔴</i><b>إشعار مدين</b></a>
+                </div>
+
+                <div class="snap-nav-section">
+                    <span>Platform</span>
+                    <a class="@Active("Subscription")" asp-controller="Subscription" asp-action="Index"><i>💳</i><b>الاشتراك</b></a>
+                    <a class="@Active("SuperAdmin")" asp-controller="SuperAdmin" asp-action="Index"><i>🛡️</i><b>Super Admin</b></a>
+                    <a class="@Active("Notifications")" asp-controller="Notifications" asp-action="Index"><i>🔔</i><b>التنبيهات</b></a>
+                    <a class="@Active("Activity")" asp-controller="Activity" asp-action="Index"><i>🕘</i><b>سجل النشاط</b></a>
+                    <a class="@Active("Pwa")" asp-controller="Pwa" asp-action="Index"><i>📱</i><b>PWA</b></a>
+                    <a class="@Active("Branding")" asp-controller="Branding" asp-action="Index"><i>🎨</i><b>الهوية البصرية</b></a>
+                    <a class="@Active("Settings")" asp-controller="Settings" asp-action="Index"><i>⚙️</i><b>الإعدادات</b></a>
+                </div>
+            </nav>
+        </aside>
+
+        <div class="snap-main-v2">
+            <header class="snap-topbar-v2 no-print">
+                <div class="snap-topbar-left">
+                    <button class="snap-icon-btn" data-sidebar-toggle type="button" aria-label="Menu">☰</button>
+                    <button class="snap-search-trigger" type="button" onclick="SnapUI.openCommand()">
+                        <span>🔎</span>
+                        <b>ابحث عن عميل، فاتورة، مستند...</b>
+                        <kbd>Ctrl K</kbd>
+                    </button>
+                </div>
+                <div class="snap-topbar-actions">
+                    <span class="snap-status-pill" id="snapOnlineStatus">🟢 Online</span>
+                    <button class="snap-icon-btn" type="button" onclick="SnapUI.openDrawer('notificationsDrawer')">🔔</button>
+                    <button class="snap-icon-btn" type="button" data-theme-toggle>🌙</button>
+                    <button class="snap-user-menu" type="button" onclick="SnapUI.openDrawer('profileDrawer')">
+                        <span>@userName.Substring(0, 1).ToUpperInvariant()</span>
+                        <b>@userName</b>
+                    </button>
+                    <a class="snap-btn snap-btn-primary" asp-controller="Invoices" asp-action="Create">+ فاتورة</a>
+                </div>
+            </header>
+
+            <main class="snap-content-v2">
+                <div class="snap-breadcrumb no-print">
+                    <a asp-controller="Dashboard" asp-action="Index">@brandName</a>
+                    <span>/</span>
+                    <strong>@title</strong>
+                </div>
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <button class="snap-fab-v2 no-print" onclick="SnapUI.openDrawer('quickCreateDrawer')" type="button" title="إنشاء سريع">+</button>
+
+    <nav class="snap-bottom-nav-v2 no-print">
+        <a class="@Active("Dashboard")" asp-controller="Dashboard" asp-action="Index"><span>🏠</span><b>الرئيسية</b></a>
+        <a class="@Active("Documents")" asp-controller="Documents" asp-action="Index"><span>📄</span><b>المستندات</b></a>
+        <a href="javascript:SnapUI.openDrawer('quickCreateDrawer')"><span>➕</span><b>إنشاء</b></a>
+        <a class="@Active("Customers")" asp-controller="Customers" asp-action="Index"><span>👥</span><b>العملاء</b></a>
+        <a class="@Active("Reports")" asp-controller="Reports" asp-action="Index"><span>📊</span><b>التقارير</b></a>
+    </nav>
+
+    <div class="snap-drawer no-print" id="quickCreateDrawer" onclick="if(event.target.id==='quickCreateDrawer') SnapUI.closeDrawer('quickCreateDrawer')">
+        <div class="snap-drawer-panel snap-drawer-panel-v2">
+            <div class="snap-drawer-head">
+                <div><span class="snap-eyebrow">Quick Create</span><h2>إنشاء سريع</h2></div>
+                <button class="snap-icon-btn" type="button" onclick="SnapUI.closeDrawer('quickCreateDrawer')">×</button>
+            </div>
+            <div class="snap-quick-grid-v2">
+                <a asp-controller="Invoices" asp-action="Create"><span>🧾</span><b>فاتورة بيع</b><small>إنشاء فاتورة جديدة</small></a>
+                <a asp-controller="Quotations" asp-action="Create"><span>💬</span><b>عرض سعر</b><small>إرسال عرض للعميل</small></a>
+                <a asp-controller="CustomerStatements" asp-action="Create"><span>📋</span><b>كشف حساب</b><small>تقرير عميل كامل</small></a>
+                <a asp-controller="ReceiptVouchers" asp-action="Create"><span>📥</span><b>سند قبض</b><small>تسجيل تحصيل</small></a>
+                <a asp-controller="PaymentVouchers" asp-action="Create"><span>📤</span><b>سند صرف</b><small>تسجيل مصروف</small></a>
+                <a asp-controller="Customers" asp-action="Create"><span>👥</span><b>عميل جديد</b><small>إضافة عميل</small></a>
+                <a asp-controller="Products" asp-action="Create"><span>📦</span><b>منتج / خدمة</b><small>إضافة بند بيع</small></a>
+                <a asp-controller="Reports" asp-action="Index"><span>📊</span><b>تقرير</b><small>مركز التقارير</small></a>
+                <a asp-controller="Cash" asp-action="Index"><span>💰</span><b>الخزنة</b><small>متابعة النقدية والتحصيلات</small></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="snap-drawer no-print" id="notificationsDrawer" onclick="if(event.target.id==='notificationsDrawer') SnapUI.closeDrawer('notificationsDrawer')">
+        <div class="snap-drawer-panel snap-drawer-panel-v2">
+            <div class="snap-drawer-head">
+                <div><span class="snap-eyebrow">Notifications</span><h2>مركز التنبيهات</h2></div>
+                <button class="snap-icon-btn" type="button" onclick="SnapUI.closeDrawer('notificationsDrawer')">×</button>
+            </div>
+            <div class="snap-activity-list-v2">
+                <a><span>🧾</span><div><b>فاتورة جديدة</b><small>تم إنشاء فاتورة بيع جديدة</small></div></a>
+                <a><span>💳</span><div><b>اشتراك تجريبي</b><small>راجع حدود الاستخدام قبل الإطلاق</small></div></a>
+                <a><span>📋</span><div><b>كشف حساب</b><small>كشف جديد جاهز للطباعة</small></div></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="snap-drawer no-print" id="profileDrawer" onclick="if(event.target.id==='profileDrawer') SnapUI.closeDrawer('profileDrawer')">
+        <div class="snap-drawer-panel snap-drawer-panel-v2">
+            <div class="snap-drawer-head">
+                <div><span class="snap-eyebrow">Profile</span><h2>حساب المستخدم</h2></div>
+                <button class="snap-icon-btn" type="button" onclick="SnapUI.closeDrawer('profileDrawer')">×</button>
+            </div>
+            <div class="snap-profile-card-v2">
+                <div class="snap-avatar-lg">@userName.Substring(0, 1).ToUpperInvariant()</div>
+                <strong>@userName</strong>
+                <span>Owner / Admin</span>
+            </div>
+            <div class="snap-action-list-v2">
+                <a asp-controller="Settings" asp-action="Index">⚙️ إعدادات الشركة</a>
+                <a asp-controller="Branding" asp-action="Index">🎨 الهوية البصرية</a>
+                <a asp-controller="Subscription" asp-action="Index">💳 الاشتراك والفوترة</a>
+                <a asp-controller="Account" asp-action="Logout">🚪 تسجيل الخروج</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="snap-command no-print" onclick="if(event.target.classList.contains('snap-command')) SnapUI.closeCommand()">
+        <div class="snap-command-box snap-command-box-v2">
+            <div class="snap-command-input-wrap"><span>🔎</span><input placeholder="اكتب للبحث السريع أو إنشاء مستند..." /></div>
+            <div class="snap-command-list">
+                <a class="snap-command-item" asp-controller="Invoices" asp-action="Create">🧾 إنشاء فاتورة بيع</a>
+                <a class="snap-command-item" asp-controller="Quotations" asp-action="Create">💬 إنشاء عرض سعر</a>
+                <a class="snap-command-item" asp-controller="CustomerStatements" asp-action="Create">📋 إنشاء كشف حساب</a>
+                <a class="snap-command-item" asp-controller="ReceiptVouchers" asp-action="Create">📥 إنشاء سند قبض</a>
+                <a class="snap-command-item" asp-controller="Customers" asp-action="Create">👥 إضافة عميل</a>
+                <a class="snap-command-item" asp-controller="Products" asp-action="Create">📦 إضافة منتج / خدمة</a>
+                <a class="snap-command-item" asp-controller="Reports" asp-action="Index">📊 مركز التقارير</a>
+                <a class="snap-command-item" asp-controller="Cash" asp-action="Index">💰 الخزنة والتحصيلات</a>
+                <a class="snap-command-item" asp-controller="SuperAdmin" asp-action="Index">🛡️ Super Admin</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="snap-dialog-backdrop no-print" id="snapConfirmDialog" onclick="if(event.target.id==='snapConfirmDialog') SnapUI.closeDialog('snapConfirmDialog')">
+        <div class="snap-dialog-card">
+            <h3 id="snapDialogTitle">تأكيد العملية</h3>
+            <p id="snapDialogMessage">هل تريد المتابعة؟</p>
+            <div class="snap-dialog-actions">
+                <button class="snap-btn" type="button" onclick="SnapUI.closeDialog('snapConfirmDialog')">إلغاء</button>
+                <button class="snap-btn snap-btn-primary" type="button" onclick="SnapUI.closeDialog('snapConfirmDialog')">تأكيد</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/js/app.js" asp-append-version="true"></script>
+    <script src="~/js/sprint14-ux.js" asp-append-version="true"></script>
+    <script src="~/js/pwa/install.js" asp-append-version="true"></script>
+    <script src="~/js/pwa/update.js" asp-append-version="true"></script>
+    <script src="~/js/pwa/sync.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

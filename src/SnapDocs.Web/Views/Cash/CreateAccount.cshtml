@@ -1,0 +1,21 @@
+@model SnapDocs.Web.Models.CashAccountCreateViewModel
+@{ ViewData["Title"] = "حساب خزنة جديد"; }
+
+<div class="page-head">
+    <div><span class="snap-eyebrow">Cash Account</span><h1>حساب خزنة جديد</h1><p>أضف خزنة، حساب بنكي، أو محفظة إلكترونية.</p></div>
+    <a class="snap-btn" asp-action="Index">رجوع</a>
+</div>
+
+<form asp-action="CreateAccount" method="post" class="document-builder cash-form">
+    <div class="form-card">
+        <div class="form-grid">
+            <label>الكود<input asp-for="Code" placeholder="CASH-001" /></label>
+            <label>اسم الحساب<input asp-for="Name" placeholder="الخزنة الرئيسية" /></label>
+            <label>النوع<select asp-for="Type"><option value="Cash">خزنة</option><option value="Bank">بنك</option><option value="Wallet">محفظة</option></select></label>
+            <label>العملة<input asp-for="CurrencyCode" /></label>
+            <label>الرصيد الافتتاحي<input asp-for="OpeningBalance" type="number" step="0.01" /></label>
+            <label class="check-row"><input asp-for="IsDefault" type="checkbox" /> الحساب الافتراضي</label>
+        </div>
+        <div class="form-actions"><button class="snap-btn snap-btn-primary" type="submit">حفظ الحساب</button><a class="snap-btn" asp-action="Index">إلغاء</a></div>
+    </div>
+</form>

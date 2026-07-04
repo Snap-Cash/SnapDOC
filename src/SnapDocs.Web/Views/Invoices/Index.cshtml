@@ -1,0 +1,94 @@
+@using SnapDocs.Domain.Enums
+@model IReadOnlyList<SnapDocs.Domain.Entities.Document>
+@{
+    ViewData["Title"] = "Invoice Studio Pro";
+    var total = Model.Sum(x => x.Total);
+    var paid = Model.Sum(x => x.PaidAmount);
+    var remainingTotal = Model.Sum(x => x.Total - x.PaidAmount);
+}
+
+<div class="invoice-pro-hero">
+    <div class="invoice-pro-title">
+        <span class="eyebrow">🧾 Invoice Workspace</span>
+        <h1>Invoice Studio Pro</h1>
+        <p>مركز فواتير البيع: بحث، حالات، تحصيل، طباعة، مشاركة، وتتبع سريع لكل الفواتير في تجربة أقرب لتطبيق SaaS احترافي.</p>
+    </div>
+    <div class="invoice-pro-mini">
+        <div class="mini-card"><span>عدد الفواتير</span><strong>@Model.Count</strong></div>
+        <div class="mini-card"><span>إجمالي الفواتير</span><strong>@total.ToString("N2")</strong></div>
+        <div class="mini-card"><span>المدفوع</span><strong>@paid.ToString("N2")</strong></div>
+        <div class="mini-card"><span>المتبقي</span><strong>@remainingTotal.ToString("N2")</strong></div>
+    </div>
+</div>
+
+<div class="page-head no-print">
+    <div>
+        <h1>الفواتير</h1>
+        <p>إدارة فواتير البيع المستقلة داخل SnapDocs.</p>
+    </div>
+    <a class="btn primary" asp-action="Create">+ فاتورة جديدة</a>
+</div>
+
+@if (TempData["Success"] is not null) { <div class="alert-success">@TempData["Success"]</div> }
+
+<form method="get" class="invoice-pro-card filter-bar mt no-print">
+    <div class="searchbox wide">
+        <span>🔎</span>
+        <input name="q" value="@ViewBag.Query" placeholder="ابحث برقم الفاتورة، العميل، أو Verify Code" />
+    </div>
+    <select class="input-select" name="status">
+        <option value="">كل الحالات</option>
+        @foreach (DocumentStatus s in Enum.GetValues(typeof(DocumentStatus)))
+        {
+            <option value="@s" selected="@(ViewBag.Status == s)">@s</option>
+        }
+    </select>
+    <button class="btn secondary" type="submit">تطبيق</button>
+</form>
+
+@if (!Model.Any())
+{
+    <div class="invoice-pro-card mt empty-state">
+        <h3>لا توجد فواتير بعد</h3>
+        <p>ابدأ بإنشاء أول فاتورة بيع، وسيتم عرضها هنا ككارت احترافي مع حالتها وإجراءاتها.</p>
+        <a class="btn primary" asp-action="Create">إنشاء فاتورة</a>
+    </div>
+}
+else
+{
+    <div class="invoice-pro-list mt">
+        @foreach (var doc in Model)
+        {
+            var remaining = doc.Total - doc.PaidAmount;
+            <article class="invoice-pro-card-row">
+                <div class="doc-no">
+                    <span class="doc-icon">🧾</span>
+                    <div>
+                        <strong>@doc.Number</strong><br />
+                        <span>Verify: @doc.VerifyCode</span>
+                    </div>
+                </div>
+                <div>
+                    <span>العميل</span><br />
+                    <strong>@(doc.Customer?.Name ?? "بدون عميل")</strong>
+                </div>
+                <div>
+                    <span>التاريخ / الاستحقاق</span><br />
+                    <strong>@doc.DocumentDate.ToString("yyyy/MM/dd")</strong><br />
+                    <span>@(doc.DueDate?.ToString("yyyy/MM/dd") ?? "-")</span>
+                </div>
+                <div>
+                    <span>الإجمالي / المتبقي</span><br />
+                    <strong>@doc.Total.ToString("N2")</strong><br />
+                    <span class="@(remaining > 0 ? "danger-text" : "success-text")">@remaining.ToString("N2")</span>
+                </div>
+                <div class="actions">
+                    <partial name="_DocumentStatusBadge" model="doc.Status" />
+                    <a class="btn small secondary" asp-action="Details" asp-route-id="@doc.Id">Studio</a>
+                    <a class="btn small secondary" asp-action="Print" asp-route-id="@doc.Id" target="_blank">طباعة</a>
+                    <a class="btn small secondary" href="https://wa.me/?text=@Uri.EscapeDataString($"فاتورة رقم {doc.Number} بقيمة {doc.Total:N2}. كود التحقق: {doc.VerifyCode}")" target="_blank">واتساب</a>
+                </div>
+            </article>
+        }
+    </div>
+}

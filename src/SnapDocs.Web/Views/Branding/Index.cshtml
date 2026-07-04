@@ -1,0 +1,176 @@
+@model SnapDocs.Web.Models.BrandingViewModel
+@{
+    ViewData["Title"] = "الهوية البصرية";
+}
+
+<div class="branding-page" data-branding-page>
+    <div class="snap-page-head branding-head">
+        <div>
+            <p class="snap-eyebrow">Theme & Branding Engine</p>
+            <h1 class="snap-title">الهوية البصرية للشركة</h1>
+            <p class="snap-subtitle">تحكم في شعار الشركة، الألوان، الخط، القالب، وطريقة ظهور المستندات من مكان واحد.</p>
+        </div>
+        <div class="snap-actions">
+            <form asp-action="Reset" method="post">
+                <button class="snap-btn" type="submit">استعادة الافتراضي</button>
+            </form>
+            <button class="snap-btn snap-btn-primary" type="submit" form="brandingForm">حفظ الهوية</button>
+        </div>
+    </div>
+
+    @if (TempData["Success"] is string success)
+    {
+        <div class="snap-alert snap-alert-success no-print">@success</div>
+    }
+
+    <form id="brandingForm" asp-action="Save" method="post" enctype="multipart/form-data" class="branding-layout">
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="CompanyId" />
+
+        <section class="snap-card branding-form-card">
+            <div class="branding-section-title">
+                <span>01</span>
+                <div>
+                    <h2>بيانات العلامة</h2>
+                    <p>هذه البيانات ستظهر في الـ AppShell وقوالب الطباعة.</p>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <label>اسم الشركة
+                    <input asp-for="CompanyName" class="snap-input" data-preview="company" />
+                </label>
+                <label>Theme
+                    <select asp-for="ThemeName" class="snap-select" data-preview="theme">
+                        @foreach (var theme in Model.Themes)
+                        {
+                            <option value="@theme">@theme</option>
+                        }
+                    </select>
+                </label>
+                <label>الخط
+                    <select asp-for="FontFamily" class="snap-select" data-preview="font">
+                        @foreach (var font in Model.Fonts)
+                        {
+                            <option value="@font">@font</option>
+                        }
+                    </select>
+                </label>
+                <label>Radius
+                    <select asp-for="Radius" class="snap-select" data-preview="radius">
+                        <option value="12px">Sharp</option>
+                        <option value="18px">Soft</option>
+                        <option value="22px">Corporate</option>
+                        <option value="28px">Round</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="branding-upload-grid">
+                <label class="branding-upload">
+                    <span>Logo</span>
+                    @if (!string.IsNullOrWhiteSpace(Model.CurrentLogoPath))
+                    {
+                        <img src="@Model.CurrentLogoPath" alt="Logo" />
+                    }
+                    else
+                    {
+                        <strong>رفع شعار</strong>
+                    }
+                    <input asp-for="Logo" type="file" accept="image/*" />
+                </label>
+                <label class="branding-upload">
+                    <span>Favicon</span>
+                    @if (!string.IsNullOrWhiteSpace(Model.CurrentFaviconPath))
+                    {
+                        <img src="@Model.CurrentFaviconPath" alt="Favicon" />
+                    }
+                    else
+                    {
+                        <strong>رفع أيقونة</strong>
+                    }
+                    <input asp-for="Favicon" type="file" accept="image/*,.ico" />
+                </label>
+                <label class="branding-upload">
+                    <span>Login Background</span>
+                    @if (!string.IsNullOrWhiteSpace(Model.CurrentLoginBackgroundPath))
+                    {
+                        <img src="@Model.CurrentLoginBackgroundPath" alt="Login Background" />
+                    }
+                    else
+                    {
+                        <strong>رفع خلفية</strong>
+                    }
+                    <input asp-for="LoginBackground" type="file" accept="image/*" />
+                </label>
+            </div>
+
+            <div class="branding-section-title">
+                <span>02</span>
+                <div>
+                    <h2>الألوان</h2>
+                    <p>سيتم تطبيقها على الأزرار، الجداول، الكروت، الطباعة، وواجهة الموبايل.</p>
+                </div>
+            </div>
+
+            <div class="branding-color-grid">
+                <label>Primary<input asp-for="PrimaryColor" type="color" data-css-var="--snap-primary" /></label>
+                <label>Secondary<input asp-for="SecondaryColor" type="color" data-css-var="--snap-secondary" /></label>
+                <label>Success<input asp-for="SuccessColor" type="color" data-css-var="--snap-success" /></label>
+                <label>Danger<input asp-for="DangerColor" type="color" data-css-var="--snap-danger" /></label>
+                <label>Warning<input asp-for="WarningColor" type="color" data-css-var="--snap-warning" /></label>
+            </div>
+
+            <div class="branding-switches">
+                <label><input asp-for="DarkMode" type="checkbox" data-preview="dark" /> تفعيل Dark Mode افتراضيًا</label>
+                <label><input asp-for="WhiteLabel" type="checkbox" data-preview="white-label" /> White Label: إخفاء SnapDocs من الواجهة</label>
+            </div>
+
+            <div class="form-grid">
+                <label>رسالة تسجيل الدخول
+                    <input asp-for="LoginWelcomeText" class="snap-input" />
+                </label>
+                <label>Footer المستندات
+                    <input asp-for="FooterText" class="snap-input" />
+                </label>
+            </div>
+        </section>
+
+        <aside class="snap-card branding-preview-card">
+            <div class="branding-preview-toolbar">
+                <span>Live Preview</span>
+                <b data-preview-theme>@Model.ThemeName</b>
+            </div>
+
+            <div class="branding-preview-shell">
+                <div class="branding-preview-sidebar">
+                    <div class="branding-preview-logo" data-preview-logo>SD</div>
+                    <strong data-preview-company>@Model.CompanyName</strong>
+                    <a class="active">Dashboard</a>
+                    <a>Invoices</a>
+                    <a>Customers</a>
+                </div>
+                <div class="branding-preview-main">
+                    <div class="branding-preview-topbar">
+                        <span>Search...</span>
+                        <button>+ Invoice</button>
+                    </div>
+                    <div class="branding-preview-card-mini">
+                        <small>Today's revenue</small>
+                        <strong>84,500 EGP</strong>
+                        <em>+12.5%</em>
+                    </div>
+                    <div class="branding-preview-card-mini muted">
+                        <small>Document Preview</small>
+                        <strong>Invoice #INV-2026-0001</strong>
+                        <p>Header, QR, Footer and Watermark inherit your brand.</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </form>
+</div>
+
+@section Scripts {
+    <script src="~/js/branding.js" asp-append-version="true"></script>
+}

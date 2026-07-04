@@ -1,0 +1,38 @@
+@using SnapDocs.Domain.Enums
+@model IReadOnlyList<SnapDocs.Domain.Entities.Document>
+@{ ViewData["Title"] = "الإشعارات الدائنة"; }
+
+<div class="page-head">
+    <div><h1>الإشعارات الدائنة</h1><p>مستند مستقل لتخفيض رصيد العميل أو تسجيل خصومات ومرتجعات.</p></div>
+    <a class="btn primary" asp-action="Create">+ إشعار دائن جديد</a>
+</div>
+@if (TempData["Success"] is not null) { <div class="alert-success">@TempData["Success"]</div> }
+<div class="kpi-grid">
+    <div class="kpi-card"><span>عدد الإشعارات</span><strong>@Model.Count</strong><small>Credit Notes</small></div>
+    <div class="kpi-card"><span>إجمالي الدائن</span><strong>@Model.Sum(x => x.Total).ToString("N2")</strong><small>تخفيض أرصدة العملاء</small></div>
+    <div class="kpi-card"><span>مسودات</span><strong>@Model.Count(x => x.Status == DocumentStatus.Draft)</strong><small>تحتاج مراجعة</small></div>
+    <div class="kpi-card"><span>مرسلة</span><strong>@Model.Count(x => x.Status == DocumentStatus.Sent)</strong><small>جاهزة للطباعة والمشاركة</small></div>
+</div>
+<form method="get" class="card filter-bar mt">
+    <div class="searchbox wide"><span>🔎</span><input name="q" value="@ViewBag.Query" placeholder="ابحث برقم الإشعار، العميل، أو Verify Code" /></div>
+    <select class="input-select" name="status"><option value="">كل الحالات</option>@foreach (DocumentStatus s in Enum.GetValues(typeof(DocumentStatus))) { <option value="@s" selected="@(ViewBag.Status == s)">@s</option> }</select>
+    <button class="btn secondary" type="submit">تطبيق</button>
+</form>
+<div class="table-card mt">
+<table class="data-table responsive-table">
+<thead><tr><th>الإشعار</th><th>العميل</th><th>التاريخ</th><th>الحالة</th><th>القيمة</th><th></th></tr></thead>
+<tbody>
+@if (!Model.Any()) { <tr><td colspan="6" class="empty-state">لا توجد إشعارات دائنة.</td></tr> }
+@foreach (var doc in Model) {
+<tr>
+<td data-label="الإشعار"><strong>@doc.Number</strong><br/><span>Verify: @doc.VerifyCode</span></td>
+<td data-label="العميل">@(doc.Customer?.Name ?? "بدون عميل")</td>
+<td data-label="التاريخ">@doc.DocumentDate.ToString("yyyy/MM/dd")</td>
+<td data-label="الحالة"><partial name="_DocumentStatusBadge" model="doc.Status" /></td>
+<td data-label="القيمة"><strong>@doc.Total.ToString("N2")</strong></td>
+<td data-label="إجراءات"><div class="mini-actions wrap"><a class="btn small secondary" asp-action="Details" asp-route-id="@doc.Id">فتح</a><a class="btn small secondary" asp-action="Print" asp-route-id="@doc.Id" target="_blank">طباعة</a><a class="btn small secondary" href="https://wa.me/?text=@Uri.EscapeDataString($"إشعار دائن رقم {doc.Number} بقيمة {doc.Total:N2}. كود التحقق: {doc.VerifyCode}")" target="_blank">واتساب</a></div></td>
+</tr>
+}
+</tbody>
+</table>
+</div>

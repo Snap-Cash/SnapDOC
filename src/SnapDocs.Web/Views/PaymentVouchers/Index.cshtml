@@ -1,0 +1,24 @@
+@model IReadOnlyList<SnapDocs.Domain.Entities.Document>
+@{ ViewData["Title"] = "سندات الصرف"; }
+
+<div class="page-head">
+    <div><h1>سندات الصرف</h1><p>مستندات صرف مستقلة للمصروفات والمدفوعات.</p></div>
+    <a class="btn primary" asp-action="Create">+ سند صرف جديد</a>
+</div>
+@if (TempData["Success"] is not null) { <div class="alert-success">@TempData["Success"]</div> }
+<div class="table-card">
+<table class="data-table">
+<thead><tr><th>الرقم</th><th>العميل</th><th>التاريخ</th><th>الحالة</th><th>الإجمالي</th><th></th></tr></thead>
+<tbody>
+@if (!Model.Any()) { <tr><td colspan="6">لا توجد بيانات بعد.</td></tr> }
+@foreach (var doc in Model) {
+<tr>
+<td><strong>@doc.Number</strong><br/><span>Verify: @doc.VerifyCode</span></td>
+<td>@(doc.Customer?.Name ?? "بدون عميل")</td>
+<td>@doc.DocumentDate.ToString("yyyy/MM/dd")</td>
+<td><span class="badge sent">@doc.Status</span></td>
+<td><strong>@doc.Total.ToString("N2")</strong></td>
+<td><div class="mini-actions"><a class="btn small secondary" asp-action="Details" asp-route-id="@doc.Id">فتح</a><a class="btn small secondary" href="https://wa.me/?text=@Uri.EscapeDataString($"سند صرف رقم {doc.Number} بقيمة {doc.Total:N2}")" target="_blank">واتساب</a></div></td>
+</tr>
+}
+</tbody></table></div>

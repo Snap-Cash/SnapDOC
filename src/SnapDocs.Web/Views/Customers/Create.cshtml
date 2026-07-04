@@ -1,0 +1,30 @@
+@model SnapDocs.Web.Models.CustomerCreateViewModel
+@{
+    ViewData["Title"] = "عميل جديد";
+}
+
+<div class="page-head">
+    <div>
+        <h1>عميل جديد</h1>
+        <p>أضف بيانات العميل الأساسية لاستخدامها في الفواتير وكشوف الحساب.</p>
+    </div>
+    <a class="btn" asp-action="Index">رجوع</a>
+</div>
+
+<form asp-action="Create" method="post" class="form-card">
+    <div asp-validation-summary="ModelOnly" class="validation"></div>
+    <div class="form-grid">
+        <label>اسم العميل <input asp-for="Name" /></label>
+        <label>كود العميل <input asp-for="Code" placeholder="يترك فارغًا للترقيم التلقائي" /></label>
+        <label>الهاتف <input asp-for="Phone" /></label>
+        <label>البريد الإلكتروني <input asp-for="Email" /></label>
+        <label>العنوان <input asp-for="Address" /></label>
+        <label>الرقم الضريبي <input asp-for="TaxNumber" /></label>
+        <label>الرصيد الافتتاحي <input asp-for="OpeningBalance" type="number" step="0.01" /></label>
+        <label>حد الائتمان <input asp-for="CreditLimit" type="number" step="0.01" /></label>
+    </div>
+    <div class="form-actions">
+        <button class="btn primary" type="submit">حفظ العميل</button>
+        <a class="btn" asp-action="Index">إلغاء</a>
+    </div>
+</form>

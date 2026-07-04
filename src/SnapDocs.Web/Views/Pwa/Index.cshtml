@@ -1,0 +1,57 @@
+@{
+    ViewData["Title"] = "PWA & Offline";
+}
+
+<div class="snap-page-head">
+    <div>
+        <p class="snap-eyebrow">Sprint 11</p>
+        <h1 class="snap-title">PWA & Offline Engine</h1>
+        <p class="snap-subtitle">تجهيز SnapDocs للعمل كتطبيق قابل للتثبيت مع كاش أوفلاين وحالة اتصال واضحة.</p>
+    </div>
+    <a class="snap-btn snap-btn-primary" href="/manifest.json" target="_blank">فتح manifest</a>
+</div>
+
+<div class="snap-grid snap-grid-3">
+    <div class="snap-pwa-card">
+        <p class="snap-eyebrow">Install</p>
+        <h3>تثبيت كتطبيق</h3>
+        <p class="snap-subtitle">تم إضافة manifest كامل، shortcuts، وأيقونات maskable للتثبيت على الموبايل والكمبيوتر.</p>
+    </div>
+    <div class="snap-pwa-card">
+        <p class="snap-eyebrow">Offline</p>
+        <h3>وضع عدم الاتصال</h3>
+        <p class="snap-subtitle">Service Worker يعمل باستراتيجية Network First للصفحات و Cache First للملفات الثابتة.</p>
+    </div>
+    <div class="snap-pwa-card">
+        <p class="snap-eyebrow">Sync</p>
+        <h3>Queue مبدئي</h3>
+        <p class="snap-subtitle">تم تجهيز قائمة Local Queue قابلة للربط لاحقًا مع API للمزامنة الذكية.</p>
+    </div>
+</div>
+
+<div class="snap-card mt-4">
+    <div class="snap-page-head">
+        <div>
+            <p class="snap-eyebrow">Checklist</p>
+            <h2 class="snap-title">حالة Sprint 11</h2>
+        </div>
+        <button class="snap-btn snap-btn-ghost" type="button" onclick="SnapOffline.enqueue('demo-action', { source: 'pwa-page', at: new Date().toISOString() })">اختبار Queue</button>
+    </div>
+
+    <div class="snap-pwa-checklist">
+        <div><strong>manifest.json</strong><span class="snap-badge success">Done</span></div>
+        <div><strong>service-worker.js</strong><span class="snap-badge success">Done</span></div>
+        <div><strong>offline.html</strong><span class="snap-badge success">Done</span></div>
+        <div><strong>Install Prompt</strong><span class="snap-badge success">Done</span></div>
+        <div><strong>Update Manager</strong><span class="snap-badge success">Done</span></div>
+        <div><strong>Connection Status</strong><span class="snap-badge success">Done</span></div>
+        <div><strong>Local Sync Queue Starter</strong><span class="snap-badge warning">API-ready</span></div>
+        <div><strong>IndexedDB Full Sync</strong><span class="snap-badge">Next Version</span></div>
+    </div>
+</div>
+
+<div class="snap-card mt-4">
+    <h2>ملاحظات تشغيل</h2>
+    <p class="snap-subtitle">لاختبار الـ PWA بشكل صحيح، شغّل المشروع على HTTPS أو localhost. المتصفحات لا تفعّل Service Worker على HTTP العادي إلا في localhost.</p>
+    <pre class="snap-code">dotnet run --project src/SnapDocs.Web</pre>
+</div>

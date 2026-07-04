@@ -1,0 +1,131 @@
+@model SnapDocs.Web.Models.CustomerStatementDetailsViewModel
+@{
+    ViewData["Title"] = "كشف حساب " + Model.Customer.Name;
+    var absBalance = Math.Abs(Model.ClosingBalance);
+}
+
+<div class="page-head no-print">
+    <div>
+        <h1>@(Model.IsSnapshot ? Model.StatementNumber : "معاينة كشف حساب")</h1>
+        <p>@Model.Customer.Name · من @Model.FromDate.ToString("yyyy/MM/dd") إلى @Model.ToDate.ToString("yyyy/MM/dd")</p>
+    </div>
+    <div class="actions-row">
+        @if (Model.IsSnapshot && Model.SnapshotId.HasValue)
+        {
+            <partial name="_DocumentStatusBadge" model="Model.Status" />
+            <form asp-action="ChangeStatus" method="post" class="inline-form">
+                <input type="hidden" name="id" value="@Model.SnapshotId" />
+                <input type="hidden" name="status" value="@SnapDocs.Domain.Enums.DocumentStatus.Sent" />
+                <button class="btn secondary" type="submit">اعتماد/إرسال</button>
+            </form>
+        }
+        else
+        {
+            <form asp-action="SaveSnapshot" method="post" class="inline-form">
+                <input type="hidden" name="customerId" value="@Model.Customer.Id" />
+                <input type="hidden" name="fromDate" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
+                <input type="hidden" name="toDate" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
+                <input type="hidden" name="notes" value="@Model.Notes" />
+                <button class="btn primary" type="submit">حفظ Snapshot</button>
+            </form>
+        }
+        <button class="btn primary" onclick="window.print()">طباعة</button>
+        <a class="btn secondary" href="https://wa.me/?text=@Uri.EscapeDataString($"كشف حساب {Model.Customer.Name} من {Model.FromDate:yyyy/MM/dd} إلى {Model.ToDate:yyyy/MM/dd}، الرصيد النهائي {absBalance:N2} {Model.BalanceDirection}")" target="_blank">واتساب</a>
+        <a class="btn" asp-action="Index">رجوع</a>
+    </div>
+</div>
+
+<section class="statement-studio no-print">
+    <div class="statement-profile-card">
+        <div class="avatar-xl">@Model.Customer.Name.FirstOrDefault()</div>
+        <div>
+            <span class="eyebrow">Customer</span>
+            <h2>@Model.Customer.Name</h2>
+            <p>@Model.Customer.Phone · @Model.Customer.Email</p>
+        </div>
+    </div>
+    <div class="statement-summary-grid">
+        <div class="kpi-card"><span>الرصيد الافتتاحي</span><strong>@Model.OpeningBalance.ToString("N2")</strong></div>
+        <div class="kpi-card"><span>إجمالي المدين</span><strong>@Model.TotalDebit.ToString("N2")</strong></div>
+        <div class="kpi-card"><span>إجمالي الدائن</span><strong>@Model.TotalCredit.ToString("N2")</strong></div>
+        <div class="kpi-card balance-card"><span>الرصيد النهائي</span><strong>@absBalance.ToString("N2")</strong><em>@Model.BalanceDirection</em></div>
+    </div>
+</section>
+
+<section class="document-print statement-print professional-statement">
+    <div class="print-watermark-status">@Model.BalanceDirection</div>
+    <header class="print-title statement-print-title">
+        <div>
+            <h2>SnapDocs Demo Company</h2>
+            <p>Cairo, Egypt · info@snapdocs.local</p>
+        </div>
+        <div class="doc-meta">
+            <strong>كشف حساب عميل</strong>
+            <span>@Model.StatementNumber</span>
+            <span>@Model.FromDate.ToString("yyyy/MM/dd") - @Model.ToDate.ToString("yyyy/MM/dd")</span>
+            @if (!string.IsNullOrWhiteSpace(Model.VerifyCode)) { <span>Verify: @Model.VerifyCode</span> }
+        </div>
+    </header>
+
+    <div class="statement-party-grid">
+        <div class="party-box">
+            <span>العميل</span>
+            <strong>@Model.Customer.Name</strong>
+            <p>@Model.Customer.Phone</p>
+            <p>@Model.Customer.Address</p>
+        </div>
+        <div class="party-box statement-total-box">
+            <span>الرصيد النهائي</span>
+            <strong>@absBalance.ToString("N2") @Model.BalanceDirection</strong>
+            <p>إجمالي المدين @Model.TotalDebit.ToString("N2")</p>
+            <p>إجمالي الدائن @Model.TotalCredit.ToString("N2")</p>
+        </div>
+    </div>
+
+    <div class="statement-mini-summary">
+        <div><span>رصيد افتتاحي</span><strong>@Model.OpeningBalance.ToString("N2")</strong></div>
+        <div><span>مدين</span><strong>@Model.TotalDebit.ToString("N2")</strong></div>
+        <div><span>دائن</span><strong>@Model.TotalCredit.ToString("N2")</strong></div>
+        <div><span>نهائي</span><strong>@absBalance.ToString("N2") @Model.BalanceDirection</strong></div>
+    </div>
+
+    <table class="print-table statement-table">
+        <thead>
+        <tr>
+            <th>التاريخ</th>
+            <th>المستند</th>
+            <th>الرقم</th>
+            <th>البيان</th>
+            <th>مدين</th>
+            <th>دائن</th>
+            <th>الرصيد</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr class="opening-row"><td>@Model.FromDate.ToString("yyyy/MM/dd")</td><td>رصيد</td><td>-</td><td>رصيد افتتاحي</td><td>-</td><td>-</td><td>@Model.OpeningBalance.ToString("N2")</td></tr>
+        @if (!Model.Lines.Any())
+        {
+            <tr><td colspan="7">لا توجد حركات خلال الفترة المحددة.</td></tr>
+        }
+        @foreach (var line in Model.Lines)
+        {
+            <tr>
+                <td>@line.Date.ToString("yyyy/MM/dd")</td>
+                <td>@line.TypeName</td>
+                <td>@line.DocumentNumber</td>
+                <td>@line.Description</td>
+                <td>@(line.Debit == 0 ? "-" : line.Debit.ToString("N2"))</td>
+                <td>@(line.Credit == 0 ? "-" : line.Credit.ToString("N2"))</td>
+                <td>@line.Balance.ToString("N2")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Notes))
+    {
+        <div class="notes-box"><strong>ملاحظات:</strong> @Model.Notes</div>
+    }
+
+    <footer class="print-footer"><span>المحاسب</span><span>مدير الحسابات</span><span>العميل</span></footer>
+</section>

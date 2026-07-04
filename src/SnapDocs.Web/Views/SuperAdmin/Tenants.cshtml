@@ -1,0 +1,47 @@
+@model SnapDocs.Web.Models.SuperAdmin.SuperAdminTenantsViewModel
+@using SnapDocs.Domain.Enums
+@{ ViewData["Title"] = "إدارة الشركات"; }
+
+<div class="snap-page-head">
+    <div><span class="snap-eyebrow">Super Admin</span><h1>إدارة الشركات</h1><p>بحث، فلترة، ومتابعة استخدام كل Tenant.</p></div>
+    <a class="snap-btn snap-btn-ghost" asp-action="Index">رجوع</a>
+</div>
+
+<form method="get" class="snap-card snap-filter-bar">
+    <input name="search" value="@Model.Search" class="snap-input" placeholder="ابحث باسم الشركة، slug، أو الباقة" />
+    <select name="status" class="snap-input">
+        <option value="">كل الحالات</option>
+        @foreach (SubscriptionStatus s in Enum.GetValues(typeof(SubscriptionStatus)))
+        {
+            <option value="@s" selected="@(Model.Status == s)">@s</option>
+        }
+    </select>
+    <button class="snap-btn snap-btn-primary">بحث</button>
+</form>
+
+<section class="snap-card snap-mt">
+    <div class="snap-table-wrap">
+        <table class="snap-table">
+            <thead><tr><th>الشركة</th><th>الباقة</th><th>الحالة</th><th>شركات</th><th>مستخدمين</th><th>مستندات</th><th>الاستخدام</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var tenant in Model.Tenants)
+            {
+                <tr>
+                    <td><strong>@tenant.Name</strong><div class="snap-muted">@tenant.Slug</div></td>
+                    <td>@tenant.PlanCode</td>
+                    <td><span class="snap-badge">@tenant.Status</span></td>
+                    <td>@tenant.Companies</td>
+                    <td>@tenant.Users</td>
+                    <td>@tenant.Documents</td>
+                    <td>@tenant.MonthlyDocumentCount / @tenant.MonthlyDocumentLimit</td>
+                    <td><a class="snap-btn snap-btn-sm" asp-action="TenantDetails" asp-route-id="@tenant.Id">إدارة</a></td>
+                </tr>
+            }
+            @if (!Model.Tenants.Any())
+            {
+                <tr><td colspan="8" class="snap-empty-row">لا توجد نتائج.</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>

@@ -1,0 +1,59 @@
+@model SnapDocs.Web.Models.CustomerStatementFilterViewModel
+@{
+    ViewData["Title"] = "Statement Studio";
+}
+
+<div class="page-head">
+    <div>
+        <h1>Statement Studio</h1>
+        <p>إنشاء كشف حساب احترافي مبني تلقائيًا من فواتير وسندات العميل.</p>
+    </div>
+    <a class="btn secondary" asp-action="Index">رجوع</a>
+</div>
+
+<form asp-action="Create" method="post" class="document-builder statement-studio-form">
+    <div class="form-card">
+        <div class="studio-hero">
+            <div>
+                <span class="eyebrow">Customer Statement</span>
+                <h2>اختيار العميل والفترة</h2>
+                <p>سيقوم SnapDocs بحساب الرصيد الافتتاحي، المدين، الدائن، والرصيد النهائي تلقائيًا.</p>
+            </div>
+            <div class="hero-icon">📋</div>
+        </div>
+
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="form-grid">
+            <label>
+                العميل
+                <select asp-for="CustomerId" asp-items="ViewBag.Customers">
+                    <option value="">اختر العميل</option>
+                </select>
+                <span asp-validation-for="CustomerId" class="text-danger"></span>
+            </label>
+            <label>من تاريخ<input asp-for="FromDate" type="date" /></label>
+            <label>
+                إلى تاريخ
+                <input asp-for="ToDate" type="date" />
+                <span asp-validation-for="ToDate" class="text-danger"></span>
+            </label>
+            <label class="switch-line">
+                <input asp-for="IncludeDrafts" type="checkbox" />
+                <span>تضمين المسودات في كشف الحساب</span>
+            </label>
+        </div>
+
+        <label class="mt">ملاحظات تظهر في الطباعة<textarea asp-for="Notes" rows="4" placeholder="مثال: يرجى مراجعة الرصيد خلال 7 أيام."></textarea></label>
+
+        <div class="statement-tips">
+            <div><strong>مدين</strong><span>الفواتير والإشعارات المدينة</span></div>
+            <div><strong>دائن</strong><span>سندات القبض والإشعارات الدائنة</span></div>
+            <div><strong>الرصيد</strong><span>رصيد افتتاحي + حركات الفترة</span></div>
+        </div>
+
+        <div class="form-actions">
+            <button class="btn primary" type="submit">معاينة كشف الحساب</button>
+            <a class="btn secondary" asp-action="Index">إلغاء</a>
+        </div>
+    </div>
+</form>

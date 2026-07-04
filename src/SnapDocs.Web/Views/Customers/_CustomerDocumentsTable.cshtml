@@ -1,0 +1,58 @@
+@model IReadOnlyList<SnapDocs.Web.Models.CustomerDocumentRowViewModel>
+
+@if (Model.Any())
+{
+    <div class="customer-doc-list-pro">
+        @foreach (var doc in Model)
+        {
+            <a class="customer-doc-row-pro" asp-controller="Documents" asp-action="Details" asp-route-id="@doc.Id">
+                <div class="doc-row-icon">@GetIcon(doc.Type)</div>
+                <div class="doc-row-main">
+                    <strong>@doc.Number</strong>
+                    <span>@GetName(doc.Type) · @doc.DocumentDate.ToString("yyyy/MM/dd")</span>
+                </div>
+                <div class="doc-row-status"><partial name="_DocumentStatusBadge" model="doc.Status" /></div>
+                <div class="doc-row-money">
+                    <strong>@doc.Total.ToString("N2")</strong>
+                    <span>متبقي @doc.Balance.ToString("N2")</span>
+                </div>
+            </a>
+        }
+    </div>
+}
+else
+{
+    <div class="snap-empty-state-v2">
+        <span>📄</span>
+        <b>لا توجد مستندات</b>
+        <small>ابدأ بإنشاء فاتورة أو سند قبض لهذا العميل.</small>
+    </div>
+}
+
+@functions {
+    string GetName(SnapDocs.Domain.Enums.DocumentType type) => type switch
+    {
+        SnapDocs.Domain.Enums.DocumentType.Invoice => "فاتورة بيع",
+        SnapDocs.Domain.Enums.DocumentType.Quotation => "عرض سعر",
+        SnapDocs.Domain.Enums.DocumentType.CustomerStatement => "كشف حساب",
+        SnapDocs.Domain.Enums.DocumentType.ReceiptVoucher => "سند قبض",
+        SnapDocs.Domain.Enums.DocumentType.PaymentVoucher => "سند صرف",
+        SnapDocs.Domain.Enums.DocumentType.DeliveryNote => "إذن تسليم",
+        SnapDocs.Domain.Enums.DocumentType.CreditNote => "إشعار دائن",
+        SnapDocs.Domain.Enums.DocumentType.DebitNote => "إشعار مدين",
+        _ => type.ToString()
+    };
+
+    string GetIcon(SnapDocs.Domain.Enums.DocumentType type) => type switch
+    {
+        SnapDocs.Domain.Enums.DocumentType.Invoice => "🧾",
+        SnapDocs.Domain.Enums.DocumentType.Quotation => "💬",
+        SnapDocs.Domain.Enums.DocumentType.CustomerStatement => "📋",
+        SnapDocs.Domain.Enums.DocumentType.ReceiptVoucher => "📥",
+        SnapDocs.Domain.Enums.DocumentType.PaymentVoucher => "📤",
+        SnapDocs.Domain.Enums.DocumentType.DeliveryNote => "📦",
+        SnapDocs.Domain.Enums.DocumentType.CreditNote => "🟢",
+        SnapDocs.Domain.Enums.DocumentType.DebitNote => "🔴",
+        _ => "📄"
+    };
+}

@@ -1,0 +1,184 @@
+@using SnapDocs.Domain.Enums
+@model SnapDocs.Domain.Entities.Document
+@{
+    ViewData["Title"] = "Invoice Studio " + Model.Number;
+    var remaining = Model.Total - Model.PaidAmount;
+    var customerName = Model.Customer?.Name ?? "بدون عميل";
+}
+
+<div class="invoice-pro-details-head no-print">
+    <div class="invoice-pro-details-title">
+        <span class="invoice-pro-doc-pill">🧾 Invoice Studio Pro</span>
+        <h1>فاتورة البيع @Model.Number</h1>
+        <p><partial name="_DocumentStatusBadge" model="Model.Status" /> <span class="muted"> · Verify: @Model.VerifyCode · @Model.DocumentDate.ToString("yyyy/MM/dd")</span></p>
+    </div>
+    <div class="actions-row wrap">
+        <partial name="_DocumentWorkflowActions" model="Model" />
+        @if (Model.Status != DocumentStatus.Paid)
+        {
+            <form asp-action="MarkPaid" method="post" asp-route-id="@Model.Id" style="display:inline"><button class="btn secondary" type="submit">تسجيل مدفوعة</button></form>
+        }
+        <a class="btn secondary" asp-action="Duplicate" asp-route-id="@Model.Id">تكرار</a>
+        <a class="btn primary" asp-action="Print" asp-route-id="@Model.Id" target="_blank" data-invoice-print>طباعة احترافية</a>
+        <a class="btn secondary" href="https://wa.me/?text=@Uri.EscapeDataString($"فاتورة رقم {Model.Number} بقيمة {Model.Total:N2}. كود التحقق: {Model.VerifyCode}")" target="_blank">واتساب</a>
+        <a class="btn" asp-action="Index">رجوع</a>
+    </div>
+</div>
+
+@if (TempData["Success"] is not null) { <div class="alert-success no-print">@TempData["Success"]</div> }
+
+<div class="invoice-pro-hero no-print">
+    <div class="invoice-pro-title">
+        <span class="eyebrow">Customer Invoice Workspace</span>
+        <h1>@customerName</h1>
+        <p>مساحة عمل موحدة لمراجعة البنود، المدفوعات، الملاحظات، الطباعة، وسجل الفاتورة.</p>
+    </div>
+    <div class="invoice-pro-mini">
+        <div class="mini-card"><span>الإجمالي</span><strong>@Model.Total.ToString("N2")</strong></div>
+        <div class="mini-card"><span>المدفوع</span><strong>@Model.PaidAmount.ToString("N2")</strong></div>
+        <div class="mini-card"><span>المتبقي</span><strong class="@(remaining > 0 ? "danger-text" : "success-text")">@remaining.ToString("N2")</strong></div>
+        <div class="mini-card"><span>البنود</span><strong>@Model.Items.Count</strong></div>
+    </div>
+</div>
+
+<div class="invoice-pro-shell no-print">
+    <div class="invoice-pro-main">
+        <div class="invoice-pro-tabs">
+            <button type="button" class="invoice-pro-tab active" data-invoice-tab="overview" onclick="InvoiceStudioPro.openTab('overview')">Overview</button>
+            <button type="button" class="invoice-pro-tab" data-invoice-tab="items" onclick="InvoiceStudioPro.openTab('items')">Items</button>
+            <button type="button" class="invoice-pro-tab" data-invoice-tab="payments" onclick="InvoiceStudioPro.openTab('payments')">Payments</button>
+            <button type="button" class="invoice-pro-tab" data-invoice-tab="notes" onclick="InvoiceStudioPro.openTab('notes')">Notes</button>
+            <button type="button" class="invoice-pro-tab" data-invoice-tab="history" onclick="InvoiceStudioPro.openTab('history')">History</button>
+            <button type="button" class="invoice-pro-tab" data-invoice-tab="print" onclick="InvoiceStudioPro.openTab('print')">Print</button>
+        </div>
+
+        <section class="invoice-pro-section active" data-invoice-section="overview">
+            <div class="invoice-pro-card">
+                <div class="invoice-pro-card-head">
+                    <div><h2>بيانات الفاتورة</h2><p>ملخص الهوية، العميل، الحالة، والتواريخ.</p></div>
+                    <partial name="_DocumentStatusBadge" model="Model.Status" />
+                </div>
+                <div class="invoice-pro-form-grid">
+                    <div class="invoice-pro-field"><span>رقم الفاتورة</span><input value="@Model.Number" disabled /></div>
+                    <div class="invoice-pro-field"><span>العميل</span><input value="@customerName" disabled /></div>
+                    <div class="invoice-pro-field"><span>كود التحقق</span><input value="@Model.VerifyCode" disabled /></div>
+                    <div class="invoice-pro-field"><span>تاريخ الفاتورة</span><input value="@Model.DocumentDate.ToString("yyyy/MM/dd")" disabled /></div>
+                    <div class="invoice-pro-field"><span>تاريخ الاستحقاق</span><input value="@(Model.DueDate?.ToString("yyyy/MM/dd") ?? "-")" disabled /></div>
+                    <div class="invoice-pro-field"><span>الحالة</span><input value="@Model.Status" disabled /></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="invoice-pro-section" data-invoice-section="items">
+            <div class="invoice-pro-card">
+                <div class="invoice-pro-card-head"><div><h2>بنود الفاتورة</h2><p>تفاصيل المنتجات والخدمات داخل المستند.</p></div></div>
+                <div class="invoice-pro-table-wrap">
+                    <table class="invoice-pro-items">
+                        <thead><tr><th>البيان</th><th>الكمية</th><th>السعر</th><th>خصم</th><th>الإجمالي</th></tr></thead>
+                        <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <td data-label="البيان">@item.Description</td>
+                                <td data-label="الكمية">@item.Quantity.ToString("N3")</td>
+                                <td data-label="السعر">@item.UnitPrice.ToString("N2")</td>
+                                <td data-label="خصم">@item.Discount.ToString("N2")</td>
+                                <td data-label="الإجمالي" class="line-total">@item.LineTotal.ToString("N2")</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="invoice-pro-section" data-invoice-section="payments">
+            <div class="invoice-pro-card">
+                <div class="invoice-pro-card-head"><div><h2>المدفوعات</h2><p>ملخص السداد الحالي وربط سندات القبض لاحقًا.</p></div></div>
+                <div class="invoice-pro-form-grid">
+                    <div class="invoice-pro-field"><span>صافي الفاتورة</span><input value="@Model.Total.ToString("N2")" disabled /></div>
+                    <div class="invoice-pro-field"><span>المدفوع</span><input value="@Model.PaidAmount.ToString("N2")" disabled /></div>
+                    <div class="invoice-pro-field"><span>المتبقي</span><input value="@remaining.ToString("N2")" disabled /></div>
+                </div>
+                @if (Model.Status != DocumentStatus.Paid)
+                {
+                    <form asp-action="MarkPaid" method="post" asp-route-id="@Model.Id" class="mt"><button class="btn primary" type="submit">تسجيل الفاتورة كمدفوعة</button></form>
+                }
+            </div>
+        </section>
+
+        <section class="invoice-pro-section" data-invoice-section="notes">
+            <div class="invoice-pro-card">
+                <div class="invoice-pro-card-head"><div><h2>الملاحظات</h2><p>ملاحظات تظهر في الطباعة والمشاركة.</p></div></div>
+                <div class="notes-box">@(string.IsNullOrWhiteSpace(Model.Notes) ? "لا توجد ملاحظات." : Model.Notes)</div>
+            </div>
+        </section>
+
+        <section class="invoice-pro-section" data-invoice-section="history">
+            <div class="invoice-pro-card soft">
+                <div class="invoice-pro-card-head"><div><h2>Timeline</h2><p>سجل تشغيلي مختصر للفواتير، وسيتم ربطه بالـ Audit Log في Sprint لاحق.</p></div></div>
+                <div class="invoice-timeline-pro">
+                    <div class="invoice-timeline-item"><span class="dot">✓</span><div><b>تم إنشاء الفاتورة</b><small>@Model.CreatedAtUtc.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</small></div></div>
+                    <div class="invoice-timeline-item"><span class="dot">#</span><div><b>الحالة الحالية</b><small>@Model.Status</small></div></div>
+                    <div class="invoice-timeline-item"><span class="dot">QR</span><div><b>كود التحقق</b><small>@Model.VerifyCode</small></div></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="invoice-pro-section" data-invoice-section="print">
+            <div class="invoice-pro-card">
+                <div class="invoice-pro-card-head"><div><h2>الطباعة والمشاركة</h2><p>طباعة احترافية، رابط تحقق، ومشاركة واتساب.</p></div></div>
+                <div class="invoice-pro-actions">
+                    <a class="btn primary" asp-action="Print" asp-route-id="@Model.Id" target="_blank">طباعة / PDF</a>
+                    <a class="btn secondary" href="https://wa.me/?text=@Uri.EscapeDataString($"فاتورة رقم {Model.Number} بقيمة {Model.Total:N2}. كود التحقق: {Model.VerifyCode}")" target="_blank">مشاركة واتساب</a>
+                    <a class="btn secondary" asp-controller="Print" asp-action="Preview" asp-route-id="@Model.Id" target="_blank">Preview</a>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <aside class="invoice-pro-side">
+        <div class="invoice-pro-card">
+            <h3>الإجماليات</h3>
+            <div class="invoice-pro-total-row"><span>الإجمالي</span><strong>@Model.SubTotal.ToString("N2")</strong></div>
+            <div class="invoice-pro-total-row"><span>الخصم</span><strong>@Model.Discount.ToString("N2")</strong></div>
+            <div class="invoice-pro-total-row"><span>الضريبة @Model.TaxRate.ToString("N2")%</span><strong>@Model.Tax.ToString("N2")</strong></div>
+            <div class="invoice-pro-total-row"><span>المدفوع</span><strong>@Model.PaidAmount.ToString("N2")</strong></div>
+            <div class="invoice-pro-total-row grand"><span>المتبقي</span><strong>@remaining.ToString("N2")</strong></div>
+        </div>
+        <div class="invoice-pro-card">
+            <h3>Customer Snapshot</h3>
+            <div class="invoice-pro-customer-snapshot">
+                <div class="invoice-pro-snapshot-line"><span>العميل</span><strong>@customerName</strong></div>
+                <div class="invoice-pro-snapshot-line"><span>الهاتف</span><strong>@(Model.Customer?.Phone ?? "-")</strong></div>
+                <div class="invoice-pro-snapshot-line"><span>البريد</span><strong>@(Model.Customer?.Email ?? "-")</strong></div>
+                <div class="invoice-pro-snapshot-line"><span>الحد الائتماني</span><strong>@(Model.Customer?.CreditLimit.ToString("N2") ?? "-")</strong></div>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<section class="document-print invoice-print">
+    <div class="print-watermark-status">@Model.Status</div>
+    <header class="print-title">
+        <div><h2>SnapDocs Demo Company</h2><p>Cairo, Egypt · info@snapdocs.local</p></div>
+        <div class="doc-meta"><strong>فاتورة البيع</strong><span>@Model.Number</span><span>@Model.DocumentDate.ToString("yyyy/MM/dd")</span><span>Verify: @Model.VerifyCode</span></div>
+    </header>
+    <div class="party-box"><span>العميل</span><strong>@customerName</strong><p>@Model.Customer?.Phone</p></div>
+    <table class="print-table">
+        <thead><tr><th>البيان</th><th>الكمية</th><th>السعر</th><th>خصم</th><th>الإجمالي</th></tr></thead>
+        <tbody>@foreach (var item in Model.Items) {<tr><td>@item.Description</td><td>@item.Quantity.ToString("N3")</td><td>@item.UnitPrice.ToString("N2")</td><td>@item.Discount.ToString("N2")</td><td>@item.LineTotal.ToString("N2")</td></tr>}</tbody>
+    </table>
+    <div class="totals-box">
+        <div><span>الإجمالي</span><strong>@Model.SubTotal.ToString("N2")</strong></div>
+        <div><span>الخصم</span><strong>@Model.Discount.ToString("N2")</strong></div>
+        <div><span>الضريبة</span><strong>@Model.Tax.ToString("N2")</strong></div>
+        <div class="grand"><span>صافي الفاتورة</span><strong>@Model.Total.ToString("N2")</strong></div>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(Model.Notes)) { <div class="notes-box"><strong>ملاحظات:</strong> @Model.Notes</div> }
+    <footer class="print-footer"><span>المحاسب</span><span>العميل</span></footer>
+</section>
+
+@section Scripts {
+    <script src="~/js/invoice-studio-pro.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,35 @@
+@model SnapDocs.Web.Models.CustomerEditViewModel
+@{
+    ViewData["Title"] = "تعديل عميل";
+}
+
+<div class="page-head">
+    <div>
+        <h1>تعديل عميل</h1>
+        <p>تحديث بيانات العميل وحدود الائتمان والحالة.</p>
+    </div>
+    <a class="btn secondary" asp-action="Details" asp-route-id="@Model.Id">رجوع للعميل</a>
+</div>
+
+<form asp-action="Edit" method="post" class="studio-form">
+    <input type="hidden" asp-for="Id" />
+    <div class="form-card">
+        <h3>البيانات الأساسية</h3>
+        <div class="form-grid">
+            <div><label asp-for="Code"></label><input asp-for="Code" /></div>
+            <div><label asp-for="Name"></label><input asp-for="Name" /></div>
+            <div><label asp-for="Phone"></label><input asp-for="Phone" /></div>
+            <div><label asp-for="Email"></label><input asp-for="Email" /></div>
+            <div class="span-2"><label asp-for="Address"></label><input asp-for="Address" /></div>
+            <div><label asp-for="TaxNumber"></label><input asp-for="TaxNumber" /></div>
+            <div><label asp-for="OpeningBalance"></label><input asp-for="OpeningBalance" type="number" step="0.01" /></div>
+            <div><label asp-for="CreditLimit"></label><input asp-for="CreditLimit" type="number" step="0.01" /></div>
+            <div class="check-row"><input asp-for="IsActive" /><label asp-for="IsActive"></label></div>
+        </div>
+        <div asp-validation-summary="All" class="validation-summary"></div>
+    </div>
+    <div class="form-actions">
+        <button class="btn primary" type="submit">حفظ التعديلات</button>
+        <a class="btn secondary" asp-action="Details" asp-route-id="@Model.Id">إلغاء</a>
+    </div>
+</form>

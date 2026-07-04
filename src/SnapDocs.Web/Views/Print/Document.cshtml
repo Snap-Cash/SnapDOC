@@ -1,0 +1,155 @@
+@model SnapDocs.Web.Models.Print.PrintDocumentViewModel
+@{
+    Layout = null;
+    var autoPrint = (bool?)ViewBag.AutoPrint == true;
+    var itemIndex = 1;
+    var printBodyClass = $"snap-print-body {Model.Settings.TemplateName?.ToLowerInvariant()}".Trim();
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@Model.DocumentTitleAr - @Model.Document.Number</title>
+    <link rel="stylesheet" href="~/css/snapui.css" />
+    <link rel="stylesheet" href="~/css/print-engine.css" />
+    <style>:root{--print-accent:@Model.Settings.AccentColor;}</style>
+</head>
+<body class="@printBodyClass">
+    <div class="print-toolbar no-print">
+        <a class="snap-btn ghost" href="javascript:history.back()">رجوع</a>
+        <button class="snap-btn primary" onclick="window.print()">طباعة / PDF</button>
+        <a class="snap-btn ghost" target="_blank" href="https://wa.me/?text=@Uri.EscapeDataString(Model.DocumentTitleAr + " " + Model.Document.Number + " - " + Model.VerifyUrl)">واتساب</a>
+        <a class="snap-btn ghost" href="@Model.VerifyUrl" target="_blank">رابط التحقق</a>
+    </div>
+
+    <main class="snap-print-page">
+        @if (Model.Settings.ShowWatermark)
+        {
+            <div class="snap-watermark">@Model.Document.Status</div>
+        }
+
+        <header class="snap-print-header">
+            <div class="brand-block">
+                <div class="print-logo">@(string.IsNullOrWhiteSpace(Model.Company.LogoUrl) ? "SD" : "")</div>
+                <div>
+                    <h1>@Model.Company.Name</h1>
+                    <p>@Model.Company.Address</p>
+                    <p>@Model.Company.Phone · @Model.Company.Email</p>
+                    <p>الرقم الضريبي: @(Model.Company.TaxNumber ?? "-")</p>
+                </div>
+            </div>
+            <div class="document-title-block">
+                <span>@Model.DocumentTitleEn</span>
+                <strong>@Model.DocumentTitleAr</strong>
+                <small>@Model.Document.Number</small>
+            </div>
+        </header>
+
+        <section class="snap-print-meta">
+            <div>
+                <span>العميل</span>
+                <strong>@(Model.Document.Customer?.Name ?? "بدون عميل")</strong>
+                <p>@(Model.Document.Customer?.Phone ?? "-")</p>
+                <p>@(Model.Document.Customer?.Address ?? "-")</p>
+            </div>
+            <div>
+                <span>بيانات المستند</span>
+                <p>التاريخ: @Model.Document.DocumentDate.ToString("yyyy/MM/dd")</p>
+                <p>الاستحقاق: @(Model.Document.DueDate?.ToString("yyyy/MM/dd") ?? "-")</p>
+                <p>الحالة: <strong>@Model.Document.Status</strong></p>
+            </div>
+            <div>
+                <span>التحقق</span>
+                <p>الكود: <strong>@Model.Document.VerifyCode</strong></p>
+                <p class="verify-url">@Model.VerifyUrl</p>
+            </div>
+        </section>
+
+        @if (Model.Document.Items.Any())
+        {
+            <table class="snap-print-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>البيان</th>
+                        <th>الكمية</th>
+                        <th>السعر</th>
+                        <th>الخصم</th>
+                        <th>الإجمالي</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Document.Items)
+                    {
+                        <tr>
+                            <td>@itemIndex</td>
+                            <td class="text-start">@item.Description</td>
+                            <td>@item.Quantity.ToString("N3")</td>
+                            <td>@item.UnitPrice.ToString("N2")</td>
+                            <td>@item.Discount.ToString("N2")</td>
+                            <td>@item.LineTotal.ToString("N2")</td>
+                        </tr>
+                        itemIndex++;
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <section class="statement-print-box">
+                <h2>ملخص المستند</h2>
+                <p>@(Model.Document.Notes ?? "لا توجد بنود تفصيلية لهذا المستند.")</p>
+            </section>
+        }
+
+        <section class="snap-print-summary">
+            <div class="qr-box @(Model.Settings.ShowQrCode ? "" : "hide")">
+                <div class="qr-fake" aria-label="QR Code">
+                    @foreach (var ch in Model.Document.VerifyCode.Take(25))
+                    {
+                        <i></i>
+                    }
+                </div>
+                <small>امسح للتحقق من المستند</small>
+            </div>
+            <div class="totals-box">
+                <p><span>الإجمالي قبل الخصم</span><strong>@Model.Document.SubTotal.ToString("N2") @Model.Company.CurrencyCode</strong></p>
+                <p><span>الخصم</span><strong>@Model.Document.Discount.ToString("N2") @Model.Company.CurrencyCode</strong></p>
+                <p><span>الضريبة</span><strong>@Model.Document.Tax.ToString("N2") @Model.Company.CurrencyCode</strong></p>
+                <p class="grand"><span>الصافي</span><strong>@Model.Document.Total.ToString("N2") @Model.Company.CurrencyCode</strong></p>
+                <p><span>المدفوع</span><strong>@Model.Document.PaidAmount.ToString("N2") @Model.Company.CurrencyCode</strong></p>
+                <p><span>المتبقي</span><strong>@Model.Remaining.ToString("N2") @Model.Company.CurrencyCode</strong></p>
+            </div>
+        </section>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Document.Notes))
+        {
+            <section class="snap-print-notes">
+                <strong>ملاحظات</strong>
+                <p>@Model.Document.Notes</p>
+            </section>
+        }
+
+        <section class="snap-signatures">
+            <div>إعداد / مراجعة</div>
+            <div>توقيع العميل</div>
+            <div>اعتماد الإدارة</div>
+        </section>
+
+        <footer class="snap-print-footer">
+            <span>@Model.Settings.FooterText</span>
+            <span>Generated by SnapDocs · @Model.PrintedAt.ToString("yyyy/MM/dd HH:mm") · @Model.PrintedBy</span>
+        </footer>
+    </main>
+    @if (autoPrint)
+    {
+        <script>
+            window.addEventListener('load', function () {
+                setTimeout(function () { window.print(); }, 350);
+            });
+        </script>
+    }
+
+</body>
+</html>

@@ -1,0 +1,39 @@
+@model SnapDocs.Application.DTOs.SaaS.BillingDashboardDto
+@{ ViewData["Title"] = "باقات SnapDocs"; }
+<div class="snap-page-head">
+    <div>
+        <span class="snap-eyebrow">Pricing</span>
+        <h1>باقات SnapDocs</h1>
+        <p>اختار الباقة المناسبة. في هذه النسخة الدفع يدوي وتجريبي لحين ربط Paymob/Fawry.</p>
+    </div>
+    <a class="snap-btn snap-btn-ghost" asp-action="Index">العودة للاشتراك</a>
+</div>
+
+<div class="snap-grid-4">
+@foreach (var plan in Model.Plans)
+{
+    <section class="snap-card @(plan.IsCurrent ? "snap-card-highlight" : "")">
+        <div class="snap-section-head">
+            <div><h2>@plan.NameAr</h2><span class="snap-subtitle">@plan.Code</span></div>
+            @if (plan.IsCurrent) { <span class="snap-badge">الحالية</span> }
+        </div>
+        <div class="snap-price"><strong>@plan.MonthlyPrice.ToString("N0")</strong><span>جنيه / شهر</span></div>
+        <ul class="snap-feature-list">
+            <li>📄 مستندات: @(plan.DocumentLimit <= 0 ? "غير محدود" : plan.DocumentLimit.ToString())</li>
+            <li>👥 مستخدمون: @(plan.UserLimit <= 0 ? "غير محدود" : plan.UserLimit.ToString())</li>
+            <li>🏢 عملاء: @(plan.CustomerLimit <= 0 ? "غير محدود" : plan.CustomerLimit.ToString())</li>
+            <li>@(plan.HasWatermark ? "💧 بعلامة مائية" : "✅ بدون علامة مائية")</li>
+            <li>@(plan.CanUseWhatsApp ? "✅ WhatsApp" : "— WhatsApp")</li>
+            <li>@(plan.CanUseCustomTemplates ? "✅ قوالب مخصصة" : "— قوالب مخصصة")</li>
+            <li>@(plan.CanUseApi ? "✅ API" : "— API")</li>
+        </ul>
+        <form asp-action="ChangePlan" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="planCode" value="@plan.Code" />
+            <button class="snap-btn @(plan.IsCurrent ? "snap-btn-ghost" : "snap-btn-primary")" type="submit" disabled="@plan.IsCurrent">
+                @(plan.IsCurrent ? "الباقة الحالية" : "اختيار الباقة")
+            </button>
+        </form>
+    </section>
+}
+</div>

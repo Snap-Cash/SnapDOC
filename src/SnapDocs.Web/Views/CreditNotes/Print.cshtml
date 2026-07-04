@@ -1,0 +1,16 @@
+@model SnapDocs.Domain.Entities.Document
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8" /><title>طباعة إشعار دائن @Model.Number</title><link rel="stylesheet" href="~/css/snapui.css" /></head>
+<body class="print-body" onload="setTimeout(() => window.print(), 350)">
+<section class="pro-print-page">
+    <div class="print-watermark-status">@Model.Status</div>
+    <header class="pro-print-header"><div class="pro-logo">SD</div><div><h1>SnapDocs Demo Company</h1><p>Cairo, Egypt · info@snapdocs.local · 01000000000</p></div><div class="pro-doc-title"><strong>إشعار دائن</strong><span>@Model.Number</span></div></header>
+    <section class="pro-print-grid"><div><span>العميل</span><strong>@(Model.Customer?.Name ?? "بدون عميل")</strong><p>@(Model.Customer?.Phone ?? "-")</p></div><div><span>بيانات المستند</span><p>التاريخ: @Model.DocumentDate.ToString("yyyy/MM/dd")</p><p>كود التحقق: @Model.VerifyCode</p><p>حركة دائن تخفض رصيد العميل</p></div><div><span>الحالة</span><strong>@Model.Status</strong><p>القيمة: @Model.Total.ToString("N2")</p></div></section>
+    <table class="pro-print-table"><thead><tr><th>#</th><th>البيان</th><th>الكمية</th><th>القيمة</th><th>الإجمالي</th></tr></thead><tbody>@{ var i = 1; }@foreach (var item in Model.Items) { <tr><td>@i</td><td>@item.Description</td><td>@item.Quantity.ToString("N3")</td><td>@item.UnitPrice.ToString("N2")</td><td>@item.LineTotal.ToString("N2")</td></tr> i++; }</tbody></table>
+    <section class="pro-print-summary"><div><span>الإجمالي</span><strong>@Model.Total.ToString("N2")</strong></div><div><span>ملاحظات</span><p>@Model.Notes</p></div></section>
+    <footer class="pro-print-footer"><div>توقيع المحاسب</div><div>QR/Verify: @Model.VerifyCode</div><div>توقيع العميل</div></footer>
+</section>
+</body>
+</html>

@@ -1,0 +1,86 @@
+@model SnapDocs.Web.Models.SuperAdmin.SuperAdminTenantDetailsViewModel
+@using SnapDocs.Domain.Enums
+@{ ViewData["Title"] = "تفاصيل الشركة"; }
+
+<div class="snap-page-head">
+    <div>
+        <span class="snap-eyebrow">Tenant Profile</span>
+        <h1>@Model.Tenant.Name</h1>
+        <p>@Model.Tenant.Slug - @Model.Tenant.PlanCode - @Model.Tenant.SubscriptionStatus</p>
+    </div>
+    <div class="snap-actions"><a class="snap-btn snap-btn-ghost" asp-action="Tenants">رجوع</a><a class="snap-btn snap-btn-primary" asp-action="Billing">الفوترة</a></div>
+</div>
+
+@if (TempData["Success"] is not null)
+{
+    <div class="snap-alert snap-alert-success">@TempData["Success"]</div>
+}
+
+<div class="snap-grid-4">
+    <div class="snap-card snap-stat-card"><span>الشركات</span><strong>@Model.Companies.Count</strong><small>Companies</small></div>
+    <div class="snap-card snap-stat-card"><span>العملاء</span><strong>@Model.CustomersCount</strong><small>Customers</small></div>
+    <div class="snap-card snap-stat-card"><span>المستندات</span><strong>@Model.DocumentsCount</strong><small>Documents</small></div>
+    <div class="snap-card snap-stat-card"><span>قيمة المستندات</span><strong>@Model.DocumentsValue.ToString("N2")</strong><small>EGP</small></div>
+</div>
+
+<section class="snap-card snap-mt">
+    <div class="snap-section-head"><h2>إجراءات الاشتراك</h2><span class="snap-badge">@Model.Tenant.SubscriptionStatus</span></div>
+    <form asp-action="ChangeTenantStatus" method="post" class="snap-filter-bar">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.Tenant.Id" />
+        <select name="status" class="snap-input">
+            @foreach (SubscriptionStatus s in Enum.GetValues(typeof(SubscriptionStatus)))
+            {
+                <option value="@s" selected="@(Model.Tenant.SubscriptionStatus == s)">@s</option>
+            }
+        </select>
+        <button class="snap-btn snap-btn-primary">تحديث الحالة</button>
+    </form>
+</section>
+
+<div class="snap-grid-2 snap-mt">
+    <section class="snap-card">
+        <div class="snap-section-head"><h2>الشركات الداخلية</h2><span class="snap-badge">@Model.Companies.Count</span></div>
+        <div class="snap-table-wrap"><table class="snap-table"><thead><tr><th>الشركة</th><th>الهاتف</th><th>العملة</th></tr></thead><tbody>
+        @foreach (var company in Model.Companies)
+        {<tr><td>@company.Name</td><td>@company.Phone</td><td>@company.CurrencyCode</td></tr>}
+        </tbody></table></div>
+    </section>
+    <section class="snap-card">
+        <div class="snap-section-head"><h2>المستخدمين</h2><span class="snap-badge">@Model.Users.Count</span></div>
+        <div class="snap-table-wrap"><table class="snap-table"><thead><tr><th>الاسم</th><th>البريد</th><th>الدور</th><th>نشط</th></tr></thead><tbody>
+        @foreach (var user in Model.Users)
+        {<tr><td>@user.FullName</td><td>@user.Email</td><td>@user.Role</td><td>@(user.IsActive ? "نعم" : "لا")</td></tr>}
+        </tbody></table></div>
+    </section>
+</div>
+
+<div class="snap-grid-2 snap-mt">
+    <section class="snap-card">
+        <div class="snap-section-head"><h2>آخر المستندات</h2><span class="snap-badge">Documents</span></div>
+        <div class="snap-table-wrap"><table class="snap-table"><thead><tr><th>الرقم</th><th>النوع</th><th>العميل</th><th>الإجمالي</th></tr></thead><tbody>
+        @foreach (var doc in Model.LatestDocuments)
+        {<tr><td>@doc.Number</td><td>@doc.Type</td><td>@doc.Customer?.Name</td><td>@doc.Total.ToString("N2")</td></tr>}
+        @if (!Model.LatestDocuments.Any()) { <tr><td colspan="4" class="snap-empty-row">لا توجد مستندات.</td></tr> }
+        </tbody></table></div>
+    </section>
+    <section class="snap-card">
+        <div class="snap-section-head"><h2>فواتير الاشتراك</h2><span class="snap-badge">Billing</span></div>
+        <div class="snap-table-wrap"><table class="snap-table"><thead><tr><th>الرقم</th><th>الحالة</th><th>الإجمالي</th><th>المدفوع</th></tr></thead><tbody>
+        @foreach (var inv in Model.BillingInvoices)
+        {<tr><td>@inv.Number</td><td>@inv.Status</td><td>@inv.Total.ToString("N2")</td><td>@inv.PaidAmount.ToString("N2")</td></tr>}
+        @if (!Model.BillingInvoices.Any()) { <tr><td colspan="4" class="snap-empty-row">لا توجد فواتير اشتراك.</td></tr> }
+        </tbody></table></div>
+    </section>
+</div>
+
+<section class="snap-card snap-mt">
+    <div class="snap-section-head"><h2>آخر النشاطات</h2><span class="snap-badge">Audit</span></div>
+    <div class="snap-timeline">
+    @foreach (var log in Model.LatestActivity)
+    {
+        <div class="snap-timeline-item"><div class="snap-dot"></div><div><strong>@log.ActorName - @log.Action</strong><p class="snap-subtitle">@log.EntityName @log.EntityNumber - @log.CreatedAtUtc.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</p></div></div>
+    }
+    @if (!Model.LatestActivity.Any()) { <div class="snap-empty">لا توجد نشاطات.</div> }
+    </div>
+</section>

@@ -1,0 +1,52 @@
+@model SnapDocs.Application.DTOs.SaaS.BillingDashboardDto
+@{ ViewData["Title"] = "فواتير الاشتراك"; }
+<div class="snap-page-head">
+    <div>
+        <span class="snap-eyebrow">Billing</span>
+        <h1>فواتير الاشتراك</h1>
+        <p>قائمة بفواتير الاشتراك والمدفوعات اليدوية الحالية.</p>
+    </div>
+    <a class="snap-btn snap-btn-primary" asp-action="Pricing">تغيير الباقة</a>
+</div>
+
+@if (TempData["Success"] is not null)
+{
+    <div class="snap-alert snap-alert-success">@TempData["Success"]</div>
+}
+
+<section class="snap-card">
+    <div class="snap-section-head"><h2>الفواتير</h2><span class="snap-badge">@Model.CurrentBalance.ToString("N2") @Model.CurrencyCode مستحق</span></div>
+    <div class="snap-table-wrap">
+        <table class="snap-table">
+            <thead><tr><th>الرقم</th><th>الباقة</th><th>الإصدار</th><th>الاستحقاق</th><th>الحالة</th><th>الإجمالي</th><th>المدفوع</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var invoice in Model.Invoices)
+            {
+                <tr>
+                    <td>@invoice.Number</td>
+                    <td>@invoice.PlanName</td>
+                    <td>@invoice.IssueDate.ToLocalTime().ToString("yyyy/MM/dd")</td>
+                    <td>@invoice.DueDate.ToLocalTime().ToString("yyyy/MM/dd")</td>
+                    <td><span class="snap-badge">@invoice.Status</span></td>
+                    <td>@invoice.Total.ToString("N2") @invoice.CurrencyCode</td>
+                    <td>@invoice.PaidAmount.ToString("N2")</td>
+                    <td>
+                        @if (invoice.Status != "Paid" && invoice.Status != "Cancelled")
+                        {
+                            <form asp-action="MarkPaid" method="post" class="snap-inline-form">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="invoiceId" value="@invoice.Id" />
+                                <button class="snap-btn snap-btn-success" type="submit">تسجيل دفع</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+            @if (!Model.Invoices.Any())
+            {
+                <tr><td colspan="8" class="snap-empty-row">لا توجد فواتير اشتراك بعد. غيّر الباقة المدفوعة لإنشاء فاتورة تجريبية.</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>

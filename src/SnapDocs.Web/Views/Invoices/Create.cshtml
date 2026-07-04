@@ -1,0 +1,187 @@
+@model SnapDocs.Web.Models.InvoiceCreateViewModel
+@{ ViewData["Title"] = "Invoice Studio Pro"; }
+
+<div class="invoice-pro-hero">
+    <div class="invoice-pro-title">
+        <span class="eyebrow">🧾 Sprint 16 · Invoice Studio Pro</span>
+        <h1>فاتورة بيع جديدة</h1>
+        <p>إنشاء فاتورة احترافية بتبويبات، بنود ديناميكية، ملخص مباشر، وتجهيز كامل للطباعة والمشاركة داخل SnapDocs SaaS.</p>
+    </div>
+    <div class="invoice-pro-mini">
+        <div class="mini-card"><span>Workflow</span><strong>Draft</strong></div>
+        <div class="mini-card"><span>Tax</span><strong>@Model.TaxRate.ToString("N0")%</strong></div>
+        <div class="mini-card"><span>Shortcut</span><strong>F2</strong></div>
+        <div class="mini-card"><span>Total</span><strong id="floatingInvoiceTotal">0.00</strong></div>
+    </div>
+</div>
+
+<form asp-action="Create" method="post" class="invoice-pro-shell" id="docForm">
+    <div class="invoice-pro-main">
+        <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+        <div class="invoice-pro-tabs no-print">
+            <button type="button" class="invoice-pro-tab active" data-invoice-tab="overview" onclick="InvoiceStudioPro.openTab('overview')">البيانات</button>
+            <button type="button" class="invoice-pro-tab" data-invoice-tab="items" onclick="InvoiceStudioPro.openTab('items')">البنود</button>
+            <button type="button" class="invoice-pro-tab" data-invoice-tab="payment" onclick="InvoiceStudioPro.openTab('payment')">الضريبة والخصم</button>
+            <button type="button" class="invoice-pro-tab" data-invoice-tab="notes" onclick="InvoiceStudioPro.openTab('notes')">الملاحظات</button>
+            <button type="button" class="invoice-pro-tab" data-invoice-tab="history" onclick="InvoiceStudioPro.openTab('history')">History</button>
+        </div>
+
+        <section class="invoice-pro-section active" data-invoice-section="overview">
+            <div class="invoice-pro-card">
+                <div class="invoice-pro-card-head">
+                    <div>
+                        <h2>بيانات الفاتورة</h2>
+                        <p>اختار العميل وحدد تاريخ الفاتورة والاستحقاق.</p>
+                    </div>
+                    <span class="invoice-pro-doc-pill">Draft Invoice</span>
+                </div>
+                <div class="invoice-pro-form-grid">
+                    <label>العميل
+                        <select asp-for="CustomerId" asp-items="ViewBag.Customers">
+                            <option value="">بدون عميل</option>
+                        </select>
+                    </label>
+                    <label>تاريخ الفاتورة<input asp-for="DocumentDate" type="date" /></label>
+                    <label>تاريخ الاستحقاق<input asp-for="DueDate" type="date" /></label>
+                    <label>رقم المستند<input value="سيتم توليده تلقائيًا" disabled /></label>
+                    <label>الحالة<input value="مسودة" disabled /></label>
+                    <label>عملة الفاتورة<input value="EGP" disabled /></label>
+                </div>
+            </div>
+        </section>
+
+        <section class="invoice-pro-section" data-invoice-section="items">
+            <div class="invoice-pro-card">
+                <div class="invoice-pro-card-head">
+                    <div>
+                        <h2>بنود الفاتورة</h2>
+                        <p>اختر منتج/خدمة وسيتم ملء الوصف والسعر تلقائيًا.</p>
+                    </div>
+                    <button type="button" class="btn primary" onclick="addItem();InvoiceStudioPro.updateSideTotals();">+ إضافة بند</button>
+                </div>
+                <div class="invoice-pro-items-tools">
+                    <div class="searchbox wide"><span>🔎</span><input type="search" placeholder="بحث سريع داخل البنود أو بالباركود لاحقًا" /></div>
+                    <button type="button" class="btn secondary" onclick="InvoiceStudioPro.focusItems()">الانتقال للبنود</button>
+                </div>
+                <div class="invoice-pro-table-wrap">
+                    <table class="invoice-pro-items" id="itemsTable">
+                        <thead>
+                            <tr>
+                                <th>المنتج</th>
+                                <th>الوصف</th>
+                                <th>الكمية</th>
+                                <th>السعر</th>
+                                <th>خصم</th>
+                                <th>الإجمالي</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td data-label="المنتج">
+                                    <select name="Items[0].ProductId" class="product-select" onchange="applyProduct(this);InvoiceStudioPro.updateSideTotals();">
+                                        <option value="">اختيار منتج</option>
+                                        @foreach (var item in (SelectList)ViewBag.Products)
+                                        {
+                                            <option value="@item.Value">@item.Text</option>
+                                        }
+                                    </select>
+                                </td>
+                                <td data-label="الوصف"><input name="Items[0].Description" value="خدمة / منتج" /></td>
+                                <td data-label="الكمية"><input name="Items[0].Quantity" type="number" step="0.001" value="1" oninput="recalc();InvoiceStudioPro.updateSideTotals();" /></td>
+                                <td data-label="السعر"><input name="Items[0].UnitPrice" type="number" step="0.01" value="0" oninput="recalc();InvoiceStudioPro.updateSideTotals();" /></td>
+                                <td data-label="خصم"><input name="Items[0].Discount" type="number" step="0.01" value="0" oninput="recalc();InvoiceStudioPro.updateSideTotals();" /></td>
+                                <td data-label="الإجمالي" class="line-total">0.00</td>
+                                <td data-label="إجراء"><button type="button" class="btn small danger" onclick="removeRow(this);InvoiceStudioPro.updateSideTotals();">حذف</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <span asp-validation-for="Items" class="validation"></span>
+            </div>
+        </section>
+
+        <section class="invoice-pro-section" data-invoice-section="payment">
+            <div class="invoice-pro-card">
+                <div class="invoice-pro-card-head">
+                    <div>
+                        <h2>الضريبة والخصم</h2>
+                        <p>اضبط خصم الفاتورة ونسبة الضريبة العامة.</p>
+                    </div>
+                </div>
+                <div class="invoice-pro-form-grid">
+                    <label>خصم الفاتورة<input asp-for="Discount" type="number" step="0.01" oninput="recalc();InvoiceStudioPro.updateSideTotals();" /></label>
+                    <label>ضريبة %<input asp-for="TaxRate" type="number" step="0.01" oninput="recalc();InvoiceStudioPro.updateSideTotals();" /></label>
+                    <label>طريقة السداد<input value="كاش / تحويل / آجل - لاحقًا" disabled /></label>
+                </div>
+            </div>
+        </section>
+
+        <section class="invoice-pro-section" data-invoice-section="notes">
+            <div class="invoice-pro-card">
+                <div class="invoice-pro-card-head">
+                    <div>
+                        <h2>ملاحظات وشروط</h2>
+                        <p>هذه الملاحظات تظهر في تفاصيل وطباعة الفاتورة.</p>
+                    </div>
+                </div>
+                <label class="invoice-pro-field">ملاحظات الفاتورة<textarea asp-for="Notes" rows="6" placeholder="شروط الدفع، ملاحظات التسليم، أو رسالة للعميل..."></textarea></label>
+            </div>
+        </section>
+
+        <section class="invoice-pro-section" data-invoice-section="history">
+            <div class="invoice-pro-card soft">
+                <div class="invoice-pro-card-head">
+                    <div>
+                        <h2>History & Audit</h2>
+                        <p>سيتم تسجيل الأحداث الفعلية بعد حفظ الفاتورة.</p>
+                    </div>
+                </div>
+                <div class="invoice-timeline-pro">
+                    <div class="invoice-timeline-item"><span class="dot">1</span><div><b>إنشاء مسودة</b><small>يتم إنشاء رقم الفاتورة وكود التحقق عند الحفظ.</small></div></div>
+                    <div class="invoice-timeline-item"><span class="dot">2</span><div><b>إرسال للعميل</b><small>مشاركة واتساب أو طباعة PDF.</small></div></div>
+                    <div class="invoice-timeline-item"><span class="dot">3</span><div><b>تحصيل</b><small>تسجيل الدفع وتحديث الحالة.</small></div></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <aside class="invoice-pro-side no-print">
+        <div class="invoice-pro-card">
+            <div class="invoice-pro-card-head"><h3>ملخص مباشر</h3></div>
+            <div class="invoice-pro-total-row"><span>الإجمالي قبل الخصم</span><strong id="subTotal">0.00</strong></div>
+            <div class="invoice-pro-total-row"><span>خصم الفاتورة</span><strong id="docDiscount">0.00</strong></div>
+            <div class="invoice-pro-total-row"><span>الضريبة</span><strong id="taxValue">0.00</strong></div>
+            <div class="invoice-pro-total-row grand"><span>صافي الفاتورة</span><strong id="grandTotal">0.00</strong></div>
+            <div class="invoice-pro-status">
+                <span class="invoice-step done"><i>1</i> Draft</span>
+                <span class="invoice-step"><i>2</i> Sent</span>
+                <span class="invoice-step"><i>3</i> Paid</span>
+            </div>
+        </div>
+
+        <div class="invoice-pro-card">
+            <h3>اختصارات</h3>
+            <div class="shortcut-hint"><span>حفظ</span><kbd>F2</kbd></div>
+            <div class="shortcut-hint"><span>حفظ</span><kbd>Ctrl + S</kbd></div>
+            <div class="shortcut-hint"><span>الطباعة بعد الحفظ</span><kbd>Ctrl + P</kbd></div>
+        </div>
+
+        <div class="invoice-pro-card">
+            <h3>الإجراءات</h3>
+            <div class="invoice-pro-actions">
+                <button class="btn primary" type="submit">حفظ</button>
+                <a class="btn secondary" asp-action="Index">إلغاء</a>
+            </div>
+        </div>
+    </aside>
+</form>
+
+@section Scripts {
+    <script>
+        window.productCatalog = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ProductCatalog));
+    </script>
+    <script src="~/js/document-lines.js" asp-append-version="true"></script>
+    <script src="~/js/invoice-studio-pro.js" asp-append-version="true"></script>
+}

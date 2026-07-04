@@ -1,0 +1,186 @@
+@model SnapDocs.Web.Models.Dashboard.DashboardViewModel
+@using SnapDocs.Domain.Enums
+@{
+    ViewData["Title"] = "الرئيسية";
+    string Money(decimal value) => value.ToString("N2");
+    string StatusLabel(DocumentStatus status) => status switch
+    {
+        DocumentStatus.Draft => "مسودة",
+        DocumentStatus.Sent => "مرسل",
+        DocumentStatus.Paid => "مدفوع",
+        DocumentStatus.Overdue => "متأخر",
+        DocumentStatus.Cancelled => "ملغي",
+        _ => status.ToString()
+    };
+    string StatusClass(DocumentStatus status) => status switch
+    {
+        DocumentStatus.Paid => "snap-badge-success",
+        DocumentStatus.Sent => "snap-badge-primary",
+        DocumentStatus.Overdue => "snap-badge-danger",
+        DocumentStatus.Cancelled => "snap-badge-muted",
+        _ => "snap-badge-warning"
+    };
+}
+
+<section class="snap-workspace-hero">
+    <div>
+        <span class="snap-eyebrow">SnapDocs Workspace</span>
+        <h1>صباح الخير يا هندسة 👋</h1>
+        <p>لوحة تشغيل يومية لشركة <strong>@Model.CompanyName</strong>: مبيعات، تحصيلات، مستندات، تنبيهات، واستخدام الاشتراك من مكان واحد.</p>
+        <div class="snap-workspace-actions no-print">
+            <a class="snap-btn snap-btn-primary" asp-controller="Invoices" asp-action="Create">+ فاتورة جديدة</a>
+            <a class="snap-btn" asp-controller="CustomerStatements" asp-action="Create">كشف حساب</a>
+            <button class="snap-btn" type="button" onclick="SnapUI.openCommand()">بحث سريع Ctrl+K</button>
+        </div>
+    </div>
+    <div class="snap-hero-panel">
+        <div class="snap-hero-mini-card"><span>خطة الاشتراك</span><strong>@Model.PlanName</strong></div>
+        <div class="snap-hero-mini-card"><span>حالة الاشتراك</span><strong>@Model.SubscriptionStatus</strong></div>
+        <div class="snap-hero-mini-card"><span>المتبقي في التجربة</span><strong>@Model.TrialDaysLeft يوم</strong></div>
+    </div>
+</section>
+
+<section class="snap-kpi-row-v2">
+    <article class="snap-kpi-v2">
+        <div class="icon">💰</div>
+        <label>مبيعات الشهر</label>
+        <strong>@Money(Model.MonthSales)</strong>
+        <small>نسبة التحصيل @Model.CollectionRate%</small>
+    </article>
+    <article class="snap-kpi-v2">
+        <div class="icon">🧾</div>
+        <label>مستندات الشهر</label>
+        <strong>@Model.MonthDocuments</strong>
+        <small>إجمالي المستندات @Model.TotalDocuments</small>
+    </article>
+    <article class="snap-kpi-v2">
+        <div class="icon">👥</div>
+        <label>العملاء</label>
+        <strong>@Model.TotalCustomers</strong>
+        <small>@Model.NewCustomersThisMonth عميل جديد هذا الشهر</small>
+    </article>
+    <article class="snap-kpi-v2">
+        <div class="icon">⏳</div>
+        <label>مستحق للتحصيل</label>
+        <strong>@Money(Model.OutstandingBalance)</strong>
+        <small>@Model.OverdueDocuments مستند متأخر</small>
+    </article>
+</section>
+
+<section class="snap-workspace-grid-v2">
+    <div class="snap-panel-v2">
+        <div class="snap-panel-head-v2">
+            <div><span class="snap-eyebrow">Quick Actions</span><h2>اختصارات العمل اليومي</h2></div>
+            <button class="snap-btn" type="button" onclick="SnapUI.openDrawer('quickCreateDrawer')">فتح القائمة</button>
+        </div>
+        <div class="snap-action-grid-v2">
+            @foreach (var action in Model.QuickActions)
+            {
+                <a asp-controller="@action.Controller" asp-action="@action.Action">
+                    <span>@action.Icon</span>
+                    <b>@action.Title</b>
+                    <small>إنشاء سريع</small>
+                </a>
+            }
+        </div>
+    </div>
+
+    <aside class="snap-panel-v2">
+        <div class="snap-panel-head-v2">
+            <div><span class="snap-eyebrow">Subscription</span><h2>الخطة والاستخدام</h2></div>
+            <span class="snap-badge snap-badge-primary">@Model.PlanName</span>
+        </div>
+        <p class="snap-subtitle">@Model.DocumentUsage / @(Model.DocumentLimit == 0 ? "∞" : Model.DocumentLimit) مستند</p>
+        <div class="snap-progress"><span style="width:@(Model.DocumentLimit == 0 ? 35 : Math.Min(100, (Model.DocumentUsage * 100 / Math.Max(1, Model.DocumentLimit))))%"></span></div>
+        <div class="snap-mini-grid" style="margin-top:14px">
+            <div><span>حد العملاء</span><strong>@(Model.CustomerLimit == 0 ? "غير محدود" : Model.CustomerLimit)</strong></div>
+            <div><span>حد المستخدمين</span><strong>@Model.UserLimit</strong></div>
+        </div>
+        <a class="snap-btn snap-btn-primary snap-btn-block" style="margin-top:14px" asp-controller="Subscription" asp-action="Index">إدارة الاشتراك</a>
+    </aside>
+</section>
+
+<section class="snap-workspace-grid-v2">
+    <div class="snap-panel-v2">
+        <div class="snap-panel-head-v2">
+            <div><span class="snap-eyebrow">Recent Documents</span><h2>آخر المستندات</h2></div>
+            <a class="snap-btn" asp-controller="Documents" asp-action="Index">عرض الكل</a>
+        </div>
+        @if (Model.RecentDocuments.Any())
+        {
+            <div class="snap-doc-card-list">
+                @foreach (var doc in Model.RecentDocuments)
+                {
+                    <a class="snap-doc-card-v2" asp-controller="@doc.ControllerName" asp-action="Details" asp-route-id="@doc.Id">
+                        <span class="snap-doc-icon">📄</span>
+                        <span class="snap-doc-main"><strong>@doc.Number</strong><span>@doc.Type · @doc.CustomerName · @doc.DocumentDate.ToString("yyyy/MM/dd")</span></span>
+                        <span class="snap-doc-money"><strong>@Money(doc.Total)</strong><span class="snap-badge @StatusClass(doc.Status)">@StatusLabel(doc.Status)</span></span>
+                    </a>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="snap-empty-state-v2"><span>🧾</span><strong>لا توجد مستندات بعد</strong><small>ابدأ بإنشاء أول فاتورة أو عرض سعر.</small><a class="snap-btn snap-btn-primary" asp-controller="Invoices" asp-action="Create">إنشاء فاتورة</a></div>
+        }
+    </div>
+
+    <aside class="snap-panel-v2">
+        <div class="snap-panel-head-v2">
+            <div><span class="snap-eyebrow">Notifications</span><h2>التنبيهات</h2></div>
+            <a class="snap-btn snap-btn-ghost" asp-controller="Notifications" asp-action="Index">الكل</a>
+        </div>
+        <div class="snap-activity-list-v2">
+            @if (Model.Notifications.Any())
+            {
+                foreach (var item in Model.Notifications)
+                {
+                    <a href="@(item.Url ?? Url.Action("Index", "Notifications"))">
+                        <span>@item.Icon</span>
+                        <div><b>@item.Title</b><small>@item.Message</small></div>
+                    </a>
+                }
+            }
+            else
+            {
+                <div class="snap-empty-state-v2"><span>🔔</span><strong>لا توجد تنبيهات</strong><small>كل شيء مستقر الآن.</small></div>
+            }
+        </div>
+    </aside>
+</section>
+
+<section class="snap-workspace-grid-v2">
+    <div class="snap-panel-v2">
+        <div class="snap-panel-head-v2">
+            <div><span class="snap-eyebrow">Document Mix</span><h2>توزيع المستندات</h2></div>
+        </div>
+        <div class="snap-metric-list">
+            @foreach (var item in Model.TypeMetrics)
+            {
+                <div class="snap-metric-row"><span><b>@item.Icon</b> @item.Label</span><strong>@item.Count</strong></div>
+            }
+        </div>
+    </div>
+    <div class="snap-panel-v2">
+        <div class="snap-panel-head-v2">
+            <div><span class="snap-eyebrow">Activity Feed</span><h2>آخر النشاط</h2></div>
+            <a class="snap-btn snap-btn-ghost" asp-controller="Activity" asp-action="Index">السجل الكامل</a>
+        </div>
+        <div class="snap-activity-list-v2">
+            @if (Model.RecentActivities.Any())
+            {
+                foreach (var item in Model.RecentActivities)
+                {
+                    <a>
+                        <span>🕘</span>
+                        <div><b>@item.Action</b><small>@item.ActorName — @item.EntityName @(string.IsNullOrWhiteSpace(item.EntityNumber) ? "" : $"#{item.EntityNumber}") · @item.CreatedAt.ToString("yyyy/MM/dd HH:mm")</small></div>
+                    </a>
+                }
+            }
+            else
+            {
+                <div class="snap-empty-state-v2"><span>🕘</span><strong>لا يوجد نشاط حديث</strong><small>سيظهر هنا سجل العمليات اليومية.</small></div>
+            }
+        </div>
+    </div>
+</section>

@@ -1,0 +1,51 @@
+@model SnapDocs.Web.Models.SuperAdmin.SuperAdminBillingViewModel
+@{ ViewData["Title"] = "فوترة المنصة"; }
+
+<div class="snap-page-head">
+    <div><span class="snap-eyebrow">Platform Billing</span><h1>فوترة المنصة</h1><p>متابعة فواتير الاشتراك والمدفوعات المستحقة.</p></div>
+    <a class="snap-btn snap-btn-ghost" asp-action="Index">رجوع</a>
+</div>
+
+<div class="snap-grid-3">
+    <div class="snap-card snap-stat-card"><span>مدفوع</span><strong>@Model.PaidTotal.ToString("N2")</strong><small>Paid</small></div>
+    <div class="snap-card snap-stat-card"><span>صادر</span><strong>@Model.IssuedTotal.ToString("N2")</strong><small>Issued</small></div>
+    <div class="snap-card snap-stat-card"><span>متأخر</span><strong>@Model.OverdueTotal.ToString("N2")</strong><small>Overdue</small></div>
+</div>
+
+<form method="get" class="snap-card snap-filter-bar snap-mt">
+    <input name="search" value="@Model.Search" class="snap-input" placeholder="رقم الفاتورة أو العملة" />
+    <select name="status" class="snap-input">
+        <option value="">كل الحالات</option>
+        <option value="Issued" selected="@(Model.Status == "Issued")">Issued</option>
+        <option value="Paid" selected="@(Model.Status == "Paid")">Paid</option>
+        <option value="Overdue" selected="@(Model.Status == "Overdue")">Overdue</option>
+        <option value="Cancelled" selected="@(Model.Status == "Cancelled")">Cancelled</option>
+    </select>
+    <button class="snap-btn snap-btn-primary">بحث</button>
+</form>
+
+<section class="snap-card snap-mt">
+    <div class="snap-table-wrap">
+        <table class="snap-table">
+            <thead><tr><th>الرقم</th><th>الباقة</th><th>الإصدار</th><th>الاستحقاق</th><th>الحالة</th><th>الإجمالي</th><th>المدفوع</th></tr></thead>
+            <tbody>
+            @foreach (var invoice in Model.Invoices)
+            {
+                <tr>
+                    <td>@invoice.Number</td>
+                    <td>@invoice.Plan?.NameAr</td>
+                    <td>@invoice.IssueDate.ToString("yyyy/MM/dd")</td>
+                    <td>@invoice.DueDate.ToString("yyyy/MM/dd")</td>
+                    <td><span class="snap-badge">@invoice.Status</span></td>
+                    <td>@invoice.Total.ToString("N2") @invoice.CurrencyCode</td>
+                    <td>@invoice.PaidAmount.ToString("N2")</td>
+                </tr>
+            }
+            @if (!Model.Invoices.Any())
+            {
+                <tr><td colspan="7" class="snap-empty-row">لا توجد فواتير.</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>

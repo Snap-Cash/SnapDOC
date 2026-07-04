@@ -1,0 +1,15 @@
+@using SnapDocs.Domain.Enums
+@model SnapDocs.Domain.Entities.Document
+@{ ViewData["Title"] = "إشعار مدين " + Model.Number; }
+<div class="page-head no-print">
+    <div><h1>إشعار مدين @Model.Number</h1><p><partial name="_DocumentStatusBadge" model="Model.Status" /> <span class="muted"> · Verify: @Model.VerifyCode</span></p></div>
+    <div class="actions-row wrap"><partial name="_DocumentWorkflowActions" model="Model" /><a class="btn primary" asp-action="Print" asp-route-id="@Model.Id" target="_blank">طباعة</a><a class="btn secondary" href="https://wa.me/?text=@Uri.EscapeDataString($"إشعار مدين رقم {Model.Number} بقيمة {Model.Total:N2}. كود التحقق: {Model.VerifyCode}")" target="_blank">واتساب</a><a class="btn" asp-action="Index">رجوع</a></div>
+</div>
+@if (TempData["Success"] is not null) { <div class="alert-success no-print">@TempData["Success"]</div> }
+<div class="kpi-grid no-print">
+    <div class="kpi-card"><span>القيمة</span><strong>@Model.Total.ToString("N2")</strong><small>رصيد مدين على العميل</small></div>
+    <div class="kpi-card"><span>العميل</span><strong>@(Model.Customer?.Name ?? "بدون عميل")</strong><small>@(Model.Customer?.Phone ?? "-")</small></div>
+    <div class="kpi-card"><span>التاريخ</span><strong>@Model.DocumentDate.ToString("yyyy/MM/dd")</strong><small>تاريخ المستند</small></div>
+    <div class="kpi-card"><span>الحالة</span><strong>@Model.Status</strong><small>Workflow</small></div>
+</div>
+<section class="card mt no-print"><h2>بيانات الإشعار</h2><div class="table-card flat"><table class="data-table"><thead><tr><th>السبب</th><th>الكمية</th><th>القيمة</th><th>الإجمالي</th></tr></thead><tbody>@foreach (var item in Model.Items) { <tr><td>@item.Description</td><td>@item.Quantity.ToString("N3")</td><td>@item.UnitPrice.ToString("N2")</td><td><strong>@item.LineTotal.ToString("N2")</strong></td></tr> }</tbody></table></div><p class="muted mt">@Model.Notes</p></section>

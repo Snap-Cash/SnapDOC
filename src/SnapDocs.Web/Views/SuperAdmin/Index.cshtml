@@ -1,0 +1,116 @@
+@model SnapDocs.Web.Models.SuperAdmin.SuperAdminDashboardViewModel
+@{ ViewData["Title"] = "Super Admin Pro"; }
+
+<div class="snap-page-head">
+    <div>
+        <span class="snap-eyebrow">Platform Command Center</span>
+        <h1>لوحة تحكم Super Admin Pro</h1>
+        <p>متابعة الشركات، الاشتراكات، الإيرادات، الاستخدام، وحالة النظام من مكان واحد.</p>
+    </div>
+    <div class="snap-actions">
+        <a class="snap-btn snap-btn-ghost" asp-action="Health">حالة النظام</a>
+        <a class="snap-btn snap-btn-primary" asp-action="Tenants">إدارة الشركات</a>
+    </div>
+</div>
+
+@if (TempData["Success"] is not null)
+{
+    <div class="snap-alert snap-alert-success">@TempData["Success"]</div>
+}
+
+<div class="snap-grid-4">
+    <div class="snap-card snap-stat-card"><span>الشركات</span><strong>@Model.TenantsCount</strong><small>Tenants</small></div>
+    <div class="snap-card snap-stat-card"><span>المستخدمين</span><strong>@Model.UsersCount</strong><small>Platform users</small></div>
+    <div class="snap-card snap-stat-card"><span>المستندات</span><strong>@Model.DocumentsCount</strong><small>All documents</small></div>
+    <div class="snap-card snap-stat-card"><span>الإيرادات</span><strong>@Model.Revenue.ToString("N2")</strong><small>EGP</small></div>
+</div>
+
+<div class="snap-grid-4 snap-mt">
+    <div class="snap-card snap-stat-card"><span>اشتراكات فعالة</span><strong>@Model.ActiveSubscriptions</strong><small>Active</small></div>
+    <div class="snap-card snap-stat-card"><span>تجارب مجانية</span><strong>@Model.TrialSubscriptions</strong><small>Trial</small></div>
+    <div class="snap-card snap-stat-card"><span>متأخرة/مستحقة</span><strong>@Model.PastDueSubscriptions</strong><small>Past due</small></div>
+    <div class="snap-card snap-stat-card"><span>متوسط الإيراد</span><strong>@Model.AverageRevenuePerTenant.ToString("N2")</strong><small>ARPT</small></div>
+</div>
+
+<div class="snap-grid-2 snap-mt">
+    <section class="snap-card">
+        <div class="snap-section-head">
+            <h2>آخر الشركات</h2>
+            <a asp-action="Tenants" class="snap-link">عرض الكل</a>
+        </div>
+        <div class="snap-table-wrap">
+            <table class="snap-table">
+                <thead><tr><th>الشركة</th><th>الباقة</th><th>الحالة</th><th>الاستخدام</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var tenant in Model.LatestTenants)
+                {
+                    <tr>
+                        <td><strong>@tenant.Name</strong><div class="snap-muted">@tenant.Slug</div></td>
+                        <td>@tenant.PlanCode</td>
+                        <td><span class="snap-badge">@tenant.Status</span></td>
+                        <td>@tenant.MonthlyDocumentCount / @tenant.MonthlyDocumentLimit</td>
+                        <td><a class="snap-btn snap-btn-sm" asp-action="TenantDetails" asp-route-id="@tenant.Id">فتح</a></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="snap-card">
+        <div class="snap-section-head"><h2>الإيراد حسب الباقة</h2><span class="snap-badge">Billing</span></div>
+        <div class="snap-table-wrap">
+            <table class="snap-table">
+                <thead><tr><th>الباقة</th><th>عدد الفواتير</th><th>الإيراد</th></tr></thead>
+                <tbody>
+                @foreach (var row in Model.RevenueByPlan)
+                {
+                    <tr><td>@row.PlanName</td><td>@row.Invoices</td><td>@row.Revenue.ToString("N2")</td></tr>
+                }
+                @if (!Model.RevenueByPlan.Any())
+                {
+                    <tr><td colspan="3" class="snap-empty-row">لا توجد إيرادات مدفوعة بعد.</td></tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<div class="snap-grid-2 snap-mt">
+    <section class="snap-card">
+        <div class="snap-section-head"><h2>آخر فواتير الاشتراك</h2><a asp-action="Billing" class="snap-link">الفوترة</a></div>
+        <div class="snap-table-wrap">
+            <table class="snap-table">
+                <thead><tr><th>الرقم</th><th>الباقة</th><th>الحالة</th><th>الإجمالي</th></tr></thead>
+                <tbody>
+                @foreach (var invoice in Model.LatestInvoices)
+                {
+                    <tr><td>@invoice.Number</td><td>@invoice.Plan?.NameAr</td><td><span class="snap-badge">@invoice.Status</span></td><td>@invoice.Total.ToString("N2") @invoice.CurrencyCode</td></tr>
+                }
+                @if (!Model.LatestInvoices.Any())
+                {
+                    <tr><td colspan="4" class="snap-empty-row">لا توجد فواتير اشتراك بعد.</td></tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="snap-card">
+        <div class="snap-section-head"><h2>آخر النشاطات</h2><a asp-action="Activity" class="snap-link">سجل النشاط</a></div>
+        <div class="snap-timeline">
+        @foreach (var log in Model.LatestActivity)
+        {
+            <div class="snap-timeline-item">
+                <div class="snap-dot"></div>
+                <div><strong>@log.ActorName - @log.Action</strong><p class="snap-subtitle">@log.EntityName @log.EntityNumber - @log.CreatedAtUtc.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</p></div>
+            </div>
+        }
+        @if (!Model.LatestActivity.Any())
+        {
+            <div class="snap-empty">لا توجد نشاطات بعد.</div>
+        }
+        </div>
+    </section>
+</div>

@@ -1,0 +1,100 @@
+@model SnapDocs.Web.Models.CustomersIndexViewModel
+@{
+    ViewData["Title"] = "العملاء";
+}
+
+<div class="page-head">
+    <div>
+        <h1>Customer Studio</h1>
+        <p>إدارة العملاء، الأرصدة، حدود الائتمان، وآخر العمليات في مكان واحد.</p>
+    </div>
+    <a class="btn primary" asp-action="Create">+ عميل جديد</a>
+</div>
+
+@if (TempData["Success"] is not null)
+{
+    <div class="alert-success">@TempData["Success"]</div>
+}
+
+<div class="kpi-grid">
+    <div class="kpi-card"><span>إجمالي العملاء</span><strong>@Model.TotalCustomers</strong><small>كل العملاء المسجلين</small></div>
+    <div class="kpi-card"><span>عملاء نشطون</span><strong>@Model.ActiveCustomers</strong><small>جاهزون لإصدار مستندات</small></div>
+    <div class="kpi-card"><span>أرصدة افتتاحية</span><strong>@Model.TotalOpeningBalance.ToString("N2")</strong><small>إجمالي أرصدة البداية</small></div>
+    <div class="kpi-card"><span>حدود الائتمان</span><strong>@Model.TotalCreditLimit.ToString("N2")</strong><small>إجمالي الائتمان المتاح</small></div>
+</div>
+
+<div class="table-card mt">
+    <form class="filter-bar" method="get">
+        <div class="searchbox wide">
+            <span>⌕</span>
+            <input name="search" value="@Model.Search" placeholder="ابحث بالاسم، الكود، الهاتف، أو البريد" />
+        </div>
+        <select name="status" class="input-select">
+            <option value="all" selected="@(Model.Status == "all")">كل الحالات</option>
+            <option value="active" selected="@(Model.Status == "active")">نشط</option>
+            <option value="inactive" selected="@(Model.Status == "inactive")">غير نشط</option>
+        </select>
+        <button class="btn secondary" type="submit">تصفية</button>
+    </form>
+</div>
+
+<div class="customer-grid mt">
+@foreach (var customer in Model.Customers)
+{
+    <div class="card customer-card pro-card">
+        <div class="customer-card-main">
+            <div class="avatar large">@customer.Name.Substring(0,1)</div>
+            <div>
+                <h3>@customer.Name</h3>
+                <p>@customer.Code · @customer.Phone</p>
+            </div>
+        </div>
+        <div class="customer-balance">
+            <span>الرصيد الحالي</span>
+            <strong class="@(customer.CurrentBalance > 0 ? "danger-text" : "success-text")">@customer.CurrentBalance.ToString("N2")</strong>
+        </div>
+        <div class="customer-mini-stats">
+            <span>مستندات <b>@customer.DocumentsCount</b></span>
+            <span>فواتير <b>@customer.TotalInvoices.ToString("N0")</b></span>
+            <span>مدفوع <b>@customer.TotalPaid.ToString("N0")</b></span>
+        </div>
+        <div class="mini-actions wrap">
+            <a class="btn small primary" asp-action="Details" asp-route-id="@customer.Id">فتح Studio</a>
+            <a class="btn small secondary" asp-controller="Invoices" asp-action="Create" asp-route-customerId="@customer.Id">فاتورة</a>
+            <a class="btn small secondary" asp-controller="CustomerStatements" asp-action="Create" asp-route-customerId="@customer.Id">كشف</a>
+        </div>
+    </div>
+}
+</div>
+
+<div class="table-card mt">
+    <table class="data-table responsive-table">
+        <thead>
+            <tr>
+                <th>الكود</th>
+                <th>العميل</th>
+                <th>الهاتف</th>
+                <th>الرصيد</th>
+                <th>حد الائتمان</th>
+                <th>المستندات</th>
+                <th>الحالة</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var customer in Model.Customers)
+        {
+            <tr>
+                <td data-label="الكود">@customer.Code</td>
+                <td data-label="العميل"><strong>@customer.Name</strong><br /><span>@customer.Email</span></td>
+                <td data-label="الهاتف">@customer.Phone</td>
+                <td data-label="الرصيد"><strong>@customer.CurrentBalance.ToString("N2")</strong></td>
+                <td data-label="حد الائتمان">@customer.CreditLimit.ToString("N2")</td>
+                <td data-label="المستندات">@customer.DocumentsCount</td>
+                <td data-label="الحالة"><span class="badge @(customer.IsActive ? "success" : "danger")">@(customer.IsActive ? "نشط" : "موقوف")</span></td>
+                <td><a class="btn small secondary" asp-action="Details" asp-route-id="@customer.Id">عرض</a></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

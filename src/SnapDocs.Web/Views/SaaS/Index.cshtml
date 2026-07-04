@@ -1,0 +1,21 @@
+@model SnapDocs.Domain.Entities.Company
+@{ ViewData["Title"] = "الاشتراك والـ SaaS"; var tenant = Model.Tenant; var used = tenant?.MonthlyDocumentCount ?? 0; var limit = tenant?.MonthlyDocumentLimit ?? 1; var pct = Math.Min(100, (int)((used * 100.0) / Math.Max(1, limit))); }
+<div class="page-head"><div><h1>الاشتراك ومساحة العمل</h1><p>نواة SaaS مبدئية لإدارة الخطة والاستهلاك وبيانات الشركة.</p></div><a class="btn primary" asp-controller="Settings" asp-action="Index">إعدادات الشركة</a></div>
+<div class="hero saas-hero"><div><h1>@tenant?.Name</h1><p>الخطة الحالية: <strong>@tenant?.PlanCode</strong> — الحالة: <strong>@tenant?.SubscriptionStatus</strong></p></div><div class="plan-chip">Trial ends: @tenant?.TrialEndsAt.ToLocalTime().ToString("yyyy/MM/dd")</div></div>
+<div class="grid stats">
+  <div class="stat-card"><span>الشركة</span><strong>@Model.Name</strong></div>
+  <div class="stat-card"><span>المستندات هذا الشهر</span><strong>@used / @limit</strong></div>
+  <div class="stat-card"><span>العملة</span><strong>@Model.CurrencyCode</strong></div>
+  <div class="stat-card"><span>Slug</span><strong>@tenant?.Slug</strong></div>
+</div>
+<div class="card">
+  <div class="section-title"><h2>استهلاك الباقة</h2><span class="pill">@pct%</span></div>
+  <div class="usage-bar"><span style="width:@pct%"></span></div>
+  <p class="muted">هذه نسخة محلية تجريبية. عند التحويل الفعلي للـ SaaS سيتم ربطها بالمستخدمين الحقيقيين والدفع والـ Tenant Resolver.</p>
+</div>
+<div class="module-grid">
+  <a class="module-card" asp-controller="Users" asp-action="Index"><div class="emoji">👤</div><strong>المستخدمون والصلاحيات</strong><span>إدارة أعضاء الشركة</span></a>
+  <a class="module-card" asp-controller="Templates" asp-action="Index"><div class="emoji">🎨</div><strong>قوالب المستندات</strong><span>ألوان، QR، Watermark</span></a>
+  <a class="module-card" asp-controller="Notifications" asp-action="Index"><div class="emoji">🔔</div><strong>التنبيهات</strong><span>مركز إشعارات داخلي</span></a>
+  <a class="module-card" asp-controller="Activity" asp-action="Index"><div class="emoji">🧾</div><strong>سجل الأنشطة</strong><span>تتبع عمليات النظام</span></a>
+</div>
